@@ -1,7 +1,6 @@
 import argparse
 import os
 from pathlib import Path
-import json
 from typing import List
 
 from generate_ros_meta_snapcraft_file import main as gen
