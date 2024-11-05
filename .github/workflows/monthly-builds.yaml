@@ -23,7 +23,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
       - name: Generate snapacraft yaml files for all ros distros
@@ -33,7 +33,7 @@ jobs:
           python3 ./generate_all_ros_meta_snapcraft_file.py
           echo "matrix=$(ls snaps/ | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
       - name: Upload snapcrafts folders
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: snapcraft_yamls
           path: snaps/
@@ -52,7 +52,7 @@ jobs:
       SNAPCRAFT_BUILDER_ID: ${{ github.run_id }}
     steps:
       - name: Download snapcrafts folders
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: snapcraft_yamls
       - name: Add LP credentials
@@ -68,8 +68,6 @@ jobs:
         run: |
           cat /home/runner/work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}/snapcraft.yaml
       - name: snapcraft
-        env:
-          SNAPCRAFT_REMOTE_BUILD_STRATEGY: force-fallback
         run: |
           sudo snap install snapcraft --classic
           cd /home/runner/work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}
@@ -93,16 +91,16 @@ jobs:
         if: always()
         run: |
           cat /home/runner/work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}/*ros*.txt
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         name: Upload snapcraft logs
         if: always()
         with:
-          name: snapcraft_logs
+          name: snapcraft_logs_${{ matrix.snap_names }}
           path: |
             /home/runner/.cache/snapcraft/log/
             /home/runner/.local/state/snapcraft/log/
             /home/runner/work/ros-content-sharing-snaps/ros-content-sharing-snaps/**/*ros-*.txt
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         name: Upload the snap as artifact
         with:
           name: ${{ matrix.snap_names }}
@@ -117,7 +115,7 @@ jobs:
       matrix:
         snap_names: ${{ fromJSON(needs.generate-snapcrafts.outputs.matrix) }}
     steps:
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: ${{ matrix.snap_names }}
         path: .

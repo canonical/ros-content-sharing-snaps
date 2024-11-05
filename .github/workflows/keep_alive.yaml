@@ -1,0 +1,17 @@
+name: Keep alive the workflow for this entire repository
+on:
+  schedule:
+    - cron: "0 0 * * 1"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  keep_alive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gautamkrishnar/keepalive-workflow@v2
+        with:
+          workflow_files: "monthly-builds.yaml"
