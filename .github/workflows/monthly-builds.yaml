@@ -68,8 +68,6 @@ jobs:
         run: |
           cat /home/runner/work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}/snapcraft.yaml
       - name: snapcraft
-        env:
-          SNAPCRAFT_REMOTE_BUILD_STRATEGY: force-fallback
         run: |
           sudo snap install snapcraft --classic
           cd /home/runner/work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}
@@ -97,7 +95,7 @@ jobs:
         name: Upload snapcraft logs
         if: always()
         with:
-          name: snapcraft_logs
+          name: snapcraft_logs_${{ matrix.snap_names }}
           path: |
             /home/runner/.cache/snapcraft/log/
             /home/runner/.local/state/snapcraft/log/
