@@ -1,7 +1,6 @@
 import argparse
 import os
 from pathlib import Path
-import json
 from typing import List
 
 from generate_ros_meta_snapcraft_file import main as gen
@@ -41,12 +40,12 @@ def main(args=None):
     if not parsed_args.path:
         parsed_args.path = Path("snaps")
         os.makedirs(parsed_args.path, exist_ok=True)
- 
+
     ros_distros_content_sharing_snaps = [
         ROSContentSharingSnapVariants(
             ros_distro = "noetic",
             variants = ["ros-core", "ros-base", "robot", "desktop"],
-            architectures = ["amd64", "arm64", "armhf"]),
+            architectures = ["amd64", "arm64"]),
         ROSContentSharingSnapVariants(
             ros_distro = "foxy",
             variants = ["ros-core", "ros-base", "desktop"],
@@ -60,7 +59,7 @@ def main(args=None):
             variants = ["ros-core", "ros-base", "desktop"],
             architectures = ["amd64", "arm64"]),
         ]
- 
+
     for distro_content_sharing_snap in ros_distros_content_sharing_snaps:
         for variant in distro_content_sharing_snap.variants:
             for architecture in distro_content_sharing_snap.architectures:
