@@ -175,16 +175,3 @@ parts:
     override-prime: |
       rm -vf usr/lib/jvm/java-11-openjdk-*/lib/security/blacklisted.certs
 {% endif %}
-{% if ros_distro == 'jazzy' and variant == 'desktop' %}
-  jazzy-desktop-libamdhip-exec-stack:
-    # https://github.com/ROCm/clr/issues/22
-    after: [variant]
-    plugin: nil
-    build-packages: [execstack]
-    override-prime: |
-      # try remove execstack on libamdhip
-      amdlib="usr/lib/x86_64-linux-gnu/libamdhip64.so.5"
-      if [ -f $amdlib ]; then
-        execstack -c $(readlink -f $amdlib)
-      fi
-{% endif %}
