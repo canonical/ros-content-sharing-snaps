@@ -175,3 +175,12 @@ parts:
     override-prime: |
       rm -vf usr/lib/jvm/java-11-openjdk-*/lib/security/blacklisted.certs
 {% endif %}
+{% if ros_distro == 'jazzy' and variant == 'desktop' %}
+  jazzy-desktop-java-cleanup:
+    # https://forum.snapcraft.io/t/resolve-package-contains-external-symlinks-error-when-trying-to-snap/2963/20
+    after: [variant]
+    plugin: nil
+    override-prime: |
+      rm -vf usr/lib/jvm/java-21-openjdk-*/lib/security/cacerts
+{% endif %}
+
