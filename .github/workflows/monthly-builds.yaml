@@ -93,7 +93,7 @@ jobs:
         run: |
           log_files=$(find /home/runner/work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }} -type f -name '*ros*.txt')
           for log_file in ${log_files}; do
-            renamed_log_file="${log_file/:/-}"
+            renamed_log_file="${log_file//:/-}"
             if [[ "${log_file}" != "${renamed_log_file}" ]]; then # Only rename if the renamed name is different
               mv -v -n "${log_file}" "${renamed_log_file}"
             fi
