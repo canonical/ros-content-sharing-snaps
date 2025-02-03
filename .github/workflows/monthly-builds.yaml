@@ -92,7 +92,12 @@ jobs:
         if: always()
         run: |
           log_files=$(find /home/runner/work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }} -type f -name '*ros*.txt')
-          for log_file in ${log_files}; do mv -n "${log_file}" "${log_file//:/-}"; done
+          for log_file in ${log_files}; do
+            renamed_log_file="${log_file//:/-}"
+            if [[ "${log_file}" != "${renamed_log_file}" ]]; then # Only rename if the renamed name is different
+              mv -v -n "${log_file}" "${renamed_log_file}"
+            fi
+          done
       - name: check number of built snaps
         run: |
           count_txt_files=$(find /home/runner/work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }} -type f -name '*ros*.txt' | wc -l)
