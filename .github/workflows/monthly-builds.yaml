@@ -60,10 +60,6 @@ jobs:
       fail-fast: false
       matrix:
         snap_names: ${{ fromJSON(needs.generate-snapcrafts.outputs.matrix) }}
-    env:
-      # snapcraft remote-build will create a repository with the name decided by the --build-id arg
-      # URL to this repo echoed below to help debug builds (does not change if the workflow is re-run)
-      SNAPCRAFT_BUILDER_ID: ${{ github.run_id }}
     steps:
       - name: Download snapcrafts folders
         uses: actions/download-artifact@v4
@@ -85,7 +81,7 @@ jobs:
         run: |
           sudo snap install snapcraft --classic
           cd /home/runner/work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}
-          snapcraft remote-build --launchpad-accept-public-upload --build-id ${{ matrix.snap_names }}-${{ env.SNAPCRAFT_BUILDER_ID }}
+          snapcraft remote-build --launchpad-accept-public-upload
         # char ':' is illegal in GH artifact naming.
         # replace it with '-'
       - name: rename log file
