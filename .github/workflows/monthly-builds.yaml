@@ -62,7 +62,7 @@ jobs:
         snap_names: ${{ fromJSON(needs.generate-snapcrafts.outputs.matrix) }}
     steps:
       - name: Download snapcrafts folders
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: snapcraft_yamls
       - name: Add LP credentials
@@ -130,7 +130,7 @@ jobs:
       matrix:
         snap_names: ${{ fromJSON(needs.generate-snapcrafts.outputs.matrix) }}
     steps:
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v5
       with:
         name: ${{ matrix.snap_names }}
         path: .
