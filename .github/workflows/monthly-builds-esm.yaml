@@ -67,6 +67,9 @@ jobs:
           name: snapcraft_yamls
       - name: Print snapcraft.yaml
         run: |
+          ls
+          cd /home/runner/work
+          ls
           cat /home/runner/work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}/snapcraft.yaml
       - name: Enable Ubuntu Pro
         env:
