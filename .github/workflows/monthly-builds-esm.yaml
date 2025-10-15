@@ -55,7 +55,7 @@ jobs:
   snap-build:
     name: Build ROS ESM snaps
     needs: generate-snapcrafts
-    runs-on: '["ubuntu-latest", ["self-hosted", "linux", "X64", "large", "focal"]]'
+    runs-on: ["self-hosted", "linux", "X64", "large", "focal"]
     strategy:
       fail-fast: false
       matrix:
