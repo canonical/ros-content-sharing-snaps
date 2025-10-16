@@ -67,17 +67,13 @@ jobs:
           name: snapcraft_yamls
       - name: Print snapcraft.yaml
         run: |
-          pwd
-          ls
-          cat ${{ matrix.snap_names }}/snapcraft.yaml
+          cat /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}/snapcraft.yaml
       - name: Enable Ubuntu Pro
         env:
           PRO_TOKEN: ${{ secrets.PRO_TOKEN }}
         run: |
           sudo apt update && sudo apt install -y ubuntu-pro-client
           sudo pro attach $PRO_TOKEN
-          sudo pro enable esm-infra
-          sudo pro enable esm-apps
           sudo pro enable ros
       - name: snapcraft
         run: |
@@ -89,7 +85,7 @@ jobs:
       - name: rename log file
         if: always()
         run: |
-          log_files=$(find ${{ matrix.snap_names }} -type f -name '*ros*.txt')
+          log_files=$(find /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }} -type f -name '*ros*.txt')
           for log_file in ${log_files}; do
             renamed_log_file="${log_file//:/-}"
             if [[ "${log_file}" != "${renamed_log_file}" ]]; then # Only rename if the renamed name is different
@@ -98,8 +94,8 @@ jobs:
           done
       - name: check number of built snaps
         run: |
-          count_txt_files=$(find ${{ matrix.snap_names }} -type f -name '*ros*.txt' | wc -l)
-          count_snap_files=$(find ${{ matrix.snap_names }} -type f -name '*.snap' | wc -l)
+          count_txt_files=$(find /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }} -type f -name '*ros*.txt' | wc -l)
+          count_snap_files=$(find /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }} -type f -name '*.snap' | wc -l)
           if [ "$count_txt_files" -ne "$count_snap_files" ]; then
             echo "Error: The number of '.txt' files and '.snap' files do not match."
             exit 1
@@ -107,21 +103,21 @@ jobs:
       - name: Print snapcraft log
         if: always()
         run: |
-          cat ${{ matrix.snap_names }}/*ros*.txt
+          cat /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}/*ros*.txt
       - uses: actions/upload-artifact@v4
         name: Upload snapcraft logs
         if: always()
         with:
           name: snapcraft_logs_${{ matrix.snap_names }}
           path: |
-            /.cache/snapcraft/log/
-            /.local/state/snapcraft/log/
-            /ros-content-sharing-snaps/**/*ros-*.txt
+            /home/ubuntu/actions-runner/_work/.cache/snapcraft/log/
+            /home/ubuntu/actions-runner/_work/.local/state/snapcraft/log/
+            /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/**/*ros-*.txt
       - uses: actions/upload-artifact@v4
         name: Upload the snap as artifact
         with:
           name: ${{ matrix.snap_names }}
-          path: /ros-content-sharing-snaps/${{ matrix.snap_names }}/*.snap
+          path: /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}/*.snap
 
   ros-publish:
     if: github.ref == 'refs/heads/main'
