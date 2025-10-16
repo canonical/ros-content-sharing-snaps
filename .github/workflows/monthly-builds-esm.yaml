@@ -67,10 +67,9 @@ jobs:
           name: snapcraft_yamls
       - name: Print snapcraft.yaml
         run: |
+          pwd
           ls
-          cd /home/runner/work
-          ls
-          cat /home/runner/work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}/snapcraft.yaml
+          cat ${{ matrix.snap_names }}/snapcraft.yaml
       - name: Enable Ubuntu Pro
         env:
           PRO_TOKEN: ${{ secrets.PRO_TOKEN }}
@@ -83,14 +82,14 @@ jobs:
       - name: snapcraft
         run: |
           sudo snap install snapcraft --classic
-          cd /home/runner/work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}
+          cd ${{ matrix.snap_names }}
           snapcraft --destructive-mode
         # char ':' is illegal in GH artifact naming.
         # replace it with '-'
       - name: rename log file
         if: always()
         run: |
-          log_files=$(find /home/runner/work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }} -type f -name '*ros*.txt')
+          log_files=$(find ${{ matrix.snap_names }} -type f -name '*ros*.txt')
           for log_file in ${log_files}; do
             renamed_log_file="${log_file//:/-}"
             if [[ "${log_file}" != "${renamed_log_file}" ]]; then # Only rename if the renamed name is different
@@ -99,7 +98,7 @@ jobs:
           done
       - name: check number of built snaps
         run: |
-          count_txt_files=$(find /home/runner/work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }} -type f -name '*ros*.txt' | wc -l)
+          count_txt_files=$(find ${{ matrix.snap_names }} -type f -name '*ros*.txt' | wc -l)
           count_snap_files=$(find ${{ matrix.snap_names }} -type f -name '*.snap' | wc -l)
           if [ "$count_txt_files" -ne "$count_snap_files" ]; then
             echo "Error: The number of '.txt' files and '.snap' files do not match."
@@ -108,26 +107,26 @@ jobs:
       - name: Print snapcraft log
         if: always()
         run: |
-          cat /home/runner/work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}/*ros*.txt
+          cat ${{ matrix.snap_names }}/*ros*.txt
       - uses: actions/upload-artifact@v4
         name: Upload snapcraft logs
         if: always()
         with:
           name: snapcraft_logs_${{ matrix.snap_names }}
           path: |
-            /home/runner/.cache/snapcraft/log/
-            /home/runner/.local/state/snapcraft/log/
-            /home/runner/work/ros-content-sharing-snaps/ros-content-sharing-snaps/**/*ros-*.txt
+            /.cache/snapcraft/log/
+            /.local/state/snapcraft/log/
+            /ros-content-sharing-snaps/**/*ros-*.txt
       - uses: actions/upload-artifact@v4
         name: Upload the snap as artifact
         with:
           name: ${{ matrix.snap_names }}
-          path: /home/runner/work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}/*.snap
+          path: /ros-content-sharing-snaps/${{ matrix.snap_names }}/*.snap
 
   ros-publish:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: [generate-snapcrafts, snap-build]
+    needs: [generate-snapcrafts, snap-build]+
     strategy:
       fail-fast: false
       matrix:
