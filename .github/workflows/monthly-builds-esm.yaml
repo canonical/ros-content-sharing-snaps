@@ -88,6 +88,7 @@ jobs:
           cd /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/
           ls
           cd /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}
+          ls
           log_files=$(find /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }} -type f -name '*ros*.txt')
           for log_file in ${log_files}; do
             renamed_log_file="${log_file//:/-}"
