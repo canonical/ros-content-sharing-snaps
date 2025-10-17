@@ -79,7 +79,7 @@ jobs:
         run: |
           sudo snap install snapcraft --classic
           cd ${{ matrix.snap_names }}
-          snapcraft --destructive-mode
+          sudo snapcraft --destructive-mode
         # char ':' is illegal in GH artifact naming.
         # replace it with '-'
       - name: rename log file
