@@ -44,9 +44,8 @@ def main(args=None):
     ros_distros_content_sharing_snaps = [
         ROSContentSharingSnapVariants(
             ros_distro = "noetic",
-            # variants = ["ros-core", "ros-base", "robot", "desktop"],
-            variants = ["ros-core"],
-            architectures = ["amd64"]),
+            variants = ["ros-core", "ros-base", "robot", "desktop"],
+            architectures = ["amd64", "arm64"]),
         ]
 
     for distro_content_sharing_snap in ros_distros_content_sharing_snaps:
