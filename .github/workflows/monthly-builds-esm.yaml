@@ -75,12 +75,13 @@ jobs:
           sudo apt update && sudo apt install -y ubuntu-pro-client
           sudo pro attach $PRO_TOKEN
           sudo pro enable ros
-      - name: snapcraft
+      - name: Run snapcraft
         run: |
           sudo snap install snapcraft --classic
           cd ${{ matrix.snap_names }}
           sudo snapcraft --destructive-mode
-        name: Upload the snap as artifact
+      - name: Upload the snap as artifact
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.snap_names }}
           path: /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}/*.snap
