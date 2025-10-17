@@ -80,44 +80,6 @@ jobs:
           sudo snap install snapcraft --classic
           cd ${{ matrix.snap_names }}
           sudo snapcraft --destructive-mode
-        # char ':' is illegal in GH artifact naming.
-        # replace it with '-'
-      - name: rename log file
-        if: always()
-        run: |
-          cd /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/
-          ls
-          cd /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}
-          ls
-          log_files=$(find /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }} -type f -name '*ros*.txt')
-          for log_file in ${log_files}; do
-            renamed_log_file="${log_file//:/-}"
-            if [[ "${log_file}" != "${renamed_log_file}" ]]; then # Only rename if the renamed name is different
-              mv -v -n "${log_file}" "${renamed_log_file}"
-            fi
-          done
-      - name: check number of built snaps
-        run: |
-          count_txt_files=$(find /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }} -type f -name '*ros*.txt' | wc -l)
-          count_snap_files=$(find /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }} -type f -name '*.snap' | wc -l)
-          if [ "$count_txt_files" -ne "$count_snap_files" ]; then
-            echo "Error: The number of '.txt' files and '.snap' files do not match."
-            exit 1
-          fi
-      - name: Print snapcraft log
-        if: always()
-        run: |
-          cat /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}/*ros*.txt
-      - uses: actions/upload-artifact@v4
-        name: Upload snapcraft logs
-        if: always()
-        with:
-          name: snapcraft_logs_${{ matrix.snap_names }}
-          path: |
-            /home/ubuntu/actions-runner/_work/.cache/snapcraft/log/
-            /home/ubuntu/actions-runner/_work/.local/state/snapcraft/log/
-            /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/**/*ros-*.txt
-      - uses: actions/upload-artifact@v4
         name: Upload the snap as artifact
         with:
           name: ${{ matrix.snap_names }}
