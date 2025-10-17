@@ -23,9 +23,9 @@ on:
       - .gitignore
   workflow_dispatch:
 
-# concurrency:
-#   group: ${{ github.head_ref || github.run_id }}
-#   cancel-in-progress: true
+concurrency:
+  group: builds-esm-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   generate-snapcrafts:
@@ -85,6 +85,9 @@ jobs:
       - name: rename log file
         if: always()
         run: |
+          cd /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/
+          ls
+          cd /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}
           log_files=$(find /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }} -type f -name '*ros*.txt')
           for log_file in ${log_files}; do
             renamed_log_file="${log_file//:/-}"
