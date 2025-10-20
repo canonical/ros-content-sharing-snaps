@@ -104,7 +104,8 @@ jobs:
           PRO_TOKEN: ${{ secrets.PRO_TOKEN }}
         run: |
           lxc exec lxc-container -- sudo apt update && sudo apt install -y ubuntu-pro-client
-          lxc exec lxc-container -- sudo pro attach $PRO_TOKEN && sudo pro enable ros
+          lxc exec lxc-container -- bash -c "export PRO_TOKEN='$PRO_TOKEN'; sudo pro attach $MY_SECRET"
+          lxc exec lxc-container -- sudo pro enable ros
       - name: Run snapcraft
         run: |
           lxc exec lxc-container -- sudo snap install snapcraft --classic
