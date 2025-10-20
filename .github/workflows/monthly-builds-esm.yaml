@@ -57,14 +57,13 @@ jobs:
             if [ "$arch" = "arm64" ]; then
               runner='["self-hosted","linux","ARM64","large","focal"]'
             else
-              runner='["self-hosted","linux","X64","large","focal"]'
+              runner='["self-hosted","linux","X64","large","noble"]'
             fi
 
             jq -nc --arg name "$snap_name" --argjson runner "$runner" \
               '{snap_name: $name, runner: $runner}'
           done
           ))
-          echo $matrix_json
           echo "matrix=$matrix_json" >> $GITHUB_OUTPUT
       - name: Upload snapcrafts folders
         uses: actions/upload-artifact@v4
@@ -87,55 +86,55 @@ jobs:
       - name: Print snapcraft.yaml
         run: |
           cat /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_name }}/snapcraft.yaml
+      - name: Setup LXD
+        uses: canonical/setup-lxd@main
+      - name: Launch an LXD container
+        run: |
+          lxc launch ubuntu:20.04 lxc-container
+          lxc exec lxc-container -- cloud-init status --wait
+          until lxc exec lxc-container -- getent passwd ubuntu; do
+            echo "Waiting for the ubuntu user."
+            sleep 0.25
+          done
+      - name: Push the snap folder to the container
+        run: |
+          lxc file push /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_name }}/ lxc-container/home/ubuntu/
       - name: Enable Ubuntu Pro
         env:
           PRO_TOKEN: ${{ secrets.PRO_TOKEN }}
         run: |
-          sudo apt update && sudo apt install -y ubuntu-pro-client
-          sudo pro attach $PRO_TOKEN
-          sudo pro enable ros
+          lxc exec lxc-container -- sudo apt update && sudo apt install -y ubuntu-pro-client
+          lxc exec lxc-container -- sudo pro attach $PRO_TOKEN && sudo pro enable ros
       - name: Run snapcraft
         run: |
-          sudo snap install snapcraft --classic
-          cd ${{ matrix.snap_name }}
-          sudo snapcraft --destructive-mode
+          lxc exec lxc-container -- sudo snap install snapcraft --classic
+          lxc exec lxc-container -- cd ${{ matrix.snap_name }} && sudo snapcraft --destructive-mode
+      - name: Pull snap artifact out of the container
+        run:
+          lxc file pull lxc-container/home/ubuntu/*.snap /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_name }}/
       - name: Upload the snap as artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.snap_name }}
           path: /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_name }}/*.snap
 
-  # ros-publish:
-  #   if: github.ref == 'refs/heads/main'
-  #   runs-on: ubuntu-latest
-  #   needs: [generate-snapcrafts, snap-build]
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       snap_names: ${{ fromJSON(needs.generate-snapcrafts.outputs.matrix) }}
-  #   steps:
-  #   - uses: actions/download-artifact@v5
-  #     with:
-  #       name: ${{ matrix.snap_names }}
-  #       path: .
-  #   - name: Get snap filename
-  #     run: echo "SNAPFILE=$(ls *.snap)" >> $GITHUB_ENV
-  #   - uses: snapcore/action-publish@v1
-  #     env:
-  #       SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.STORE_LOGIN }}
-  #     with:
-  #       snap: ${{ env.SNAPFILE }}
-  #       release: beta
-  # publish:
-  #   if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-  #   needs: [generate-snapcrafts, snap-build]
-  #   uses: canonical/robotics-actions-workflows/.github/workflows/publish.yaml@main
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       snap_names: ${{ fromJSON(needs.generate-snapcrafts.outputs.matrix) }}
-  #   with:
-  #     snap-risk: beta
-  #     snap-track: ${{ matrix.snap_name }}
-  #   secrets:
-  #     snapstore-login: ${{ secrets.STORE_LOGIN }}
+  ros-publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: [generate-snapcrafts, snap-build]
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.generate-snapcrafts.outputs.matrix) }}
+    steps:
+    - uses: actions/download-artifact@v5
+      with:
+        name: ${{ matrix.snap_name }}
+        path: .
+    - name: Get snap filename
+      run: echo "SNAPFILE=$(ls *.snap)" >> $GITHUB_ENV
+    - uses: snapcore/action-publish@v1
+      env:
+        SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.STORE_LOGIN }}
+      with:
+        snap: ${{ env.SNAPFILE }}
+        release: beta
