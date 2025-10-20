@@ -112,7 +112,7 @@ jobs:
           lxc exec lxc-container -- bash -c "cd /home/ubuntu/${{ matrix.snap_name }} && sudo snapcraft --destructive-mode"
       - name: Pull snap artifact out of the container
         run:
-          lxc file pull lxc-container/home/ubuntu/*.snap /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_name }}/
+          lxc file pull lxc-container/home/ubuntu/${{ matrix.snap_name }}/*.snap /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_name }}/
       - name: Upload the snap as artifact
         uses: actions/upload-artifact@v4
         with:
