@@ -103,13 +103,15 @@ jobs:
         env:
           PRO_TOKEN: ${{ secrets.PRO_TOKEN }}
         run: |
-          lxc exec lxc-container -- sudo apt update && sudo apt install -y ubuntu-pro-client
+          lxc exec lxc-container -- sudo apt update
+          lxc exec lxc-container -- sudo apt install -y ubuntu-pro-client
           lxc exec lxc-container -- bash -c "export PRO_TOKEN='$PRO_TOKEN'; sudo pro attach $PRO_TOKEN"
           lxc exec lxc-container -- sudo pro enable ros
       - name: Run snapcraft
         run: |
           lxc exec lxc-container -- sudo snap install snapcraft --classic
-          lxc exec lxc-container -- cd ${{ matrix.snap_name }} && sudo snapcraft --destructive-mode
+          lxc exec lxc-container -- cd ${{ matrix.snap_name }}
+          lxc exec lxc-container -- sudo snapcraft --destructive-mode
       - name: Pull snap artifact out of the container
         run:
           lxc file pull lxc-container/home/ubuntu/*.snap /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_name }}/
