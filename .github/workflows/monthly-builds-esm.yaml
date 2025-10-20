@@ -46,20 +46,26 @@ jobs:
         run: |
           pip install .
           python3 ./generate_all_ros_esm_meta_snapcraft_file.py
-          echo 'matrix='$(jq -nc '{include: [inputs]}' < <(
-            for dir in snaps/*; do
-              [ -f "$dir/snapcraft.yaml" ] || continue
-              snap_name=$(basename "$dir")
-              arch=$(yq e '.architectures[]."build-on"' "$dir/snapcraft.yaml" | head -n1)
-              # Choose runner based on architecture
-              if [ "$ARCH" = "arm64" ]; then
-                RUNNER='["self-hosted","linux","ARM64","large","focal"]'
-              else
-                RUNNER='["self-hosted","linux","X64","large","focal"]'
-              fi
-              jq -nc --arg name "$snap_name" --arg runner "$runner" '{"snap_name": $name, "runner": $runner}'
-            done
-          )) >> $GITHUB_OUTPUT
+          matrix_json=$(jq -nc '{include: [inputs]}' < <(
+          for dir in snaps/*; do
+            [ -f "$dir/snapcraft.yaml" ] || continue
+            snap_name=$(basename "$dir")
+
+            # Extract the first build-on architecture
+            arch=$(yq e '.architectures[]."build-on"' "$dir/snapcraft.yaml" | head -n1)
+
+            if [ "$arch" = "arm64" ]; then
+              runner='["self-hosted","linux","ARM64","large","focal"]'
+            else
+              runner='["self-hosted","linux","X64","large","focal"]'
+            fi
+
+            jq -nc --arg name "$snap_name" --argjson runner "$runner" \
+              '{snap_name: $name, runner: $runner}'
+          done
+          ))
+          echo $matrix_json
+          echo "matrix=$matrix_json" >> $GITHUB_OUTPUT
       - name: Upload snapcrafts folders
         uses: actions/upload-artifact@v4
         with:
