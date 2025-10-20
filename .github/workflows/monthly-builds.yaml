@@ -13,14 +13,14 @@ on:
       - .github/worflows/keep_alive.yaml
       - README.md
       - .gitignore
-  pull_request:
-    branches:
-      - main
-    paths-ignore:
-      - .github/worflows/promote-snaps.yaml
-      - .github/worflows/keep_alive.yaml
-      - README.md
-      - .gitignore
+  # pull_request:
+  #   branches:
+  #     - main
+  #   paths-ignore:
+  #     - .github/worflows/promote-snaps.yaml
+  #     - .github/worflows/keep_alive.yaml
+  #     - README.md
+  #     - .gitignore
   workflow_dispatch:
 
 concurrency:

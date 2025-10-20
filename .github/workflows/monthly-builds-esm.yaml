@@ -27,6 +27,7 @@ concurrency:
   group: builds-esm-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
+
 jobs:
   generate-snapcrafts:
     name: Generate snapcraft.yaml files
@@ -45,7 +46,20 @@ jobs:
         run: |
           pip install .
           python3 ./generate_all_ros_esm_meta_snapcraft_file.py
-          echo "matrix=$(ls snaps/ | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+          echo 'matrix='$(jq -nc '{include: [inputs]}' < <(
+            for dir in snaps/*; do
+              [ -f "$dir/snapcraft.yaml" ] || continue
+              snap_name=$(basename "$dir")
+              arch=$(yq e '.architectures[]."build-on"' "$dir/snapcraft.yaml" | head -n1)
+              # Choose runner based on architecture
+              if [ "$ARCH" = "arm64" ]; then
+                RUNNER='["self-hosted","linux","ARM64","large","focal"]'
+              else
+                RUNNER='["self-hosted","linux","X64","large","focal"]'
+              fi
+              jq -nc --arg name "$snap_name" --arg runner "$runner" '{"snap_name": $name, "runner": $runner}'
+            done
+          )) >> $GITHUB_OUTPUT
       - name: Upload snapcrafts folders
         uses: actions/upload-artifact@v4
         with:
@@ -55,11 +69,10 @@ jobs:
   snap-build:
     name: Build ROS ESM snaps
     needs: generate-snapcrafts
-    runs-on: ["self-hosted", "linux", "X64", "large", "focal"]
     strategy:
-      fail-fast: false
-      matrix:
-        snap_names: ${{ fromJSON(needs.generate-snapcrafts.outputs.matrix) }}
+        fail-fast: false
+        matrix: ${{ fromJSON(needs.generate-snapcrafts.outputs.matrix) }}
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Download snapcrafts folders
         uses: actions/download-artifact@v5
@@ -67,7 +80,7 @@ jobs:
           name: snapcraft_yamls
       - name: Print snapcraft.yaml
         run: |
-          cat /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}/snapcraft.yaml
+          cat /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_name }}/snapcraft.yaml
       - name: Enable Ubuntu Pro
         env:
           PRO_TOKEN: ${{ secrets.PRO_TOKEN }}
@@ -78,32 +91,45 @@ jobs:
       - name: Run snapcraft
         run: |
           sudo snap install snapcraft --classic
-          cd ${{ matrix.snap_names }}
+          cd ${{ matrix.snap_name }}
           sudo snapcraft --destructive-mode
       - name: Upload the snap as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.snap_names }}
-          path: /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}/*.snap
+          name: ${{ matrix.snap_name }}
+          path: /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_name }}/*.snap
 
-  ros-publish:
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    needs: [generate-snapcrafts, snap-build]
-    strategy:
-      fail-fast: false
-      matrix:
-        snap_names: ${{ fromJSON(needs.generate-snapcrafts.outputs.matrix) }}
-    steps:
-    - uses: actions/download-artifact@v5
-      with:
-        name: ${{ matrix.snap_names }}
-        path: .
-    - name: Get snap filename
-      run: echo "SNAPFILE=$(ls *.snap)" >> $GITHUB_ENV
-    - uses: snapcore/action-publish@v1
-      env:
-        SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.STORE_LOGIN }}
-      with:
-        snap: ${{ env.SNAPFILE }}
-        release: beta
+  # ros-publish:
+  #   if: github.ref == 'refs/heads/main'
+  #   runs-on: ubuntu-latest
+  #   needs: [generate-snapcrafts, snap-build]
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       snap_names: ${{ fromJSON(needs.generate-snapcrafts.outputs.matrix) }}
+  #   steps:
+  #   - uses: actions/download-artifact@v5
+  #     with:
+  #       name: ${{ matrix.snap_names }}
+  #       path: .
+  #   - name: Get snap filename
+  #     run: echo "SNAPFILE=$(ls *.snap)" >> $GITHUB_ENV
+  #   - uses: snapcore/action-publish@v1
+  #     env:
+  #       SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.STORE_LOGIN }}
+  #     with:
+  #       snap: ${{ env.SNAPFILE }}
+  #       release: beta
+  # publish:
+  #   if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+  #   needs: [generate-snapcrafts, snap-build]
+  #   uses: canonical/robotics-actions-workflows/.github/workflows/publish.yaml@main
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       snap_names: ${{ fromJSON(needs.generate-snapcrafts.outputs.matrix) }}
+  #   with:
+  #     snap-risk: beta
+  #     snap-track: ${{ matrix.snap_name }}
+  #   secrets:
+  #     snapstore-login: ${{ secrets.STORE_LOGIN }}
