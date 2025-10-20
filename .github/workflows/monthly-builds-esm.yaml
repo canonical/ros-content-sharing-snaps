@@ -55,7 +55,7 @@ jobs:
             arch=$(yq e '.architectures[]."build-on"' "$dir/snapcraft.yaml" | head -n1)
 
             if [ "$arch" = "arm64" ]; then
-              runner='["self-hosted","linux","ARM64","large","focal"]'
+              runner='["self-hosted","linux","ARM64","large","noble"]'
             else
               runner='["self-hosted","linux","X64","large","noble"]'
             fi
@@ -98,7 +98,7 @@ jobs:
           done
       - name: Push the snap folder to the container
         run: |
-          lxc file push /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_name }}/ lxc-container/home/ubuntu/
+          lxc file push -r /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_name }}/ lxc-container/home/ubuntu/
       - name: Enable Ubuntu Pro
         env:
           PRO_TOKEN: ${{ secrets.PRO_TOKEN }}
