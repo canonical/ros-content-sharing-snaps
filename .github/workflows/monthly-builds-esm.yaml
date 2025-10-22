@@ -121,7 +121,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.snap_name }}
-          path: ${GH_RUNNER_WORKSPACE_PATH}/${{ matrix.snap_name }}/*.snap
+          path: ${{ env.GH_RUNNER_WORKSPACE_PATH }}/${{ matrix.snap_name }}/*.snap
 
   ros-publish:
     if: github.ref == 'refs/heads/main'
