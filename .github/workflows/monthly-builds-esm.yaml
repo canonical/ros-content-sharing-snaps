@@ -27,6 +27,8 @@ concurrency:
   group: builds-esm-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
+env:
+  GH_RUNNER_WORKSPACE_PATH: /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps
 
 jobs:
   generate-snapcrafts:
@@ -85,7 +87,7 @@ jobs:
           name: snapcraft_yamls
       - name: Print snapcraft.yaml
         run: |
-          cat /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_name }}/snapcraft.yaml
+          cat ${GH_RUNNER_WORKSPACE_PATH}/${{ matrix.snap_name }}/snapcraft.yaml
       - name: Setup LXD
         uses: canonical/setup-lxd@main
       - name: Launch an LXD container
@@ -100,7 +102,7 @@ jobs:
           done
       - name: Push the snap folder to the container
         run: |
-          lxc file push -r /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_name }}/ lxc-container/home/ubuntu/
+          lxc file push -r ${GH_RUNNER_WORKSPACE_PATH}/${{ matrix.snap_name }}/ lxc-container/home/ubuntu/
       - name: Enable Ubuntu Pro
         env:
           PRO_TOKEN: ${{ secrets.PRO_TOKEN }}
@@ -108,19 +110,19 @@ jobs:
           lxc exec lxc-container -- bash -c "sudo apt update && sudo apt install -y ubuntu-pro-client"
           lxc exec lxc-container -- bash -c "export PRO_TOKEN='$PRO_TOKEN'; sudo pro attach $PRO_TOKEN"
           lxc exec lxc-container -- sudo pro enable ros
+      - name: Install snapcraft
+        run: lxc exec lxc-container -- sudo snap install snapcraft --classic
       - name: Run snapcraft
-        run: |
-          lxc exec lxc-container -- sudo snap install snapcraft --classic
-          lxc exec lxc-container -- bash -c "cd /home/ubuntu/${{ matrix.snap_name }} && sudo snapcraft --destructive-mode"
+        run: lxc exec lxc-container --cwd /home/ubuntu/${{ matrix.snap_name }} -- sudo snapcraft --destructive-mode
       - name: Pull snap artifact out of the container
         run: |
           SNAP_FILE=$(lxc exec lxc-container -- bash -c 'ls /home/ubuntu/${{ matrix.snap_name }}/*.snap')
-          lxc file pull lxc-container${SNAP_FILE} /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_name }}/
+          lxc file pull lxc-container${SNAP_FILE} ${GH_RUNNER_WORKSPACE_PATH}/${{ matrix.snap_name }}/
       - name: Upload the snap as artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.snap_name }}
-          path: /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_name }}/*.snap
+          path: ${GH_RUNNER_WORKSPACE_PATH}/${{ matrix.snap_name }}/*.snap
 
   ros-publish:
     if: github.ref == 'refs/heads/main'
