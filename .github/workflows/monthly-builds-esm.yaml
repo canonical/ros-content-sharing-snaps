@@ -27,9 +27,6 @@ concurrency:
   group: builds-esm-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
-env:
-  GH_RUNNER_WORKSPACE_PATH: /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps
-
 jobs:
   generate-snapcrafts:
     name: Generate snapcraft.yaml files
@@ -76,6 +73,8 @@ jobs:
   snap-build:
     name: Build ROS ESM snaps
     needs: generate-snapcrafts
+    env:
+      GH_RUNNER_WORKSPACE_PATH: /home/ubuntu/actions-runner/_work/ros-content-sharing-snaps/ros-content-sharing-snaps
     strategy:
         fail-fast: false
         matrix: ${{ fromJSON(needs.generate-snapcrafts.outputs.matrix) }}
