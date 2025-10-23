@@ -99,7 +99,7 @@ parts:
     plugin: {{ pluginmap[ros_distro] }}
     source: .
 {%- if versionmap[ros_distro] == '1' %}
-    build-packages: [ros-{{ ros_distro }}-catkin]
+    build-packages: [build-essential, ros-{{ ros_distro }}-catkin]
 {%- else %}
     build-packages:
       - ros-{{ ros_distro }}-ros-environment

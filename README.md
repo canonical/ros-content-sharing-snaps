@@ -4,7 +4,7 @@ ROS content sharing snaps generator
 This repository contains various scripts to generate the content sharing snaps for ROS.
 The snapcraft extensions corresponding to these content-sharing can be found the snapcraft documentation for [ROS](https://snapcraft.io/docs/ros-noetic-content-extension) and [ROS 2](https://snapcraft.io/docs/ros2-jazzy-content-extension).
 
-Additionnaly, this repository contains the CI to build and upload the content sharing snaps.
+Additionaly, this repository contains the CI to build and upload the content sharing snaps.
 
 ## Scripts
 
