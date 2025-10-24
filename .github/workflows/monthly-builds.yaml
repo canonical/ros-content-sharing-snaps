@@ -47,7 +47,7 @@ jobs:
           python3 ./generate_all_ros_meta_snapcraft_file.py
           echo "matrix=$(ls snaps/ | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
       - name: Upload snapcrafts folders
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: snapcraft_yamls
           path: snaps/
@@ -62,7 +62,7 @@ jobs:
         snap_names: ${{ fromJSON(needs.generate-snapcrafts.outputs.matrix) }}
     steps:
       - name: Download snapcrafts folders
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: snapcraft_yamls
       - name: Add LP credentials
@@ -106,7 +106,7 @@ jobs:
         if: always()
         run: |
           cat /home/runner/work/ros-content-sharing-snaps/ros-content-sharing-snaps/${{ matrix.snap_names }}/*ros*.txt
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         name: Upload snapcraft logs
         if: always()
         with:
@@ -115,7 +115,7 @@ jobs:
             /home/runner/.cache/snapcraft/log/
             /home/runner/.local/state/snapcraft/log/
             /home/runner/work/ros-content-sharing-snaps/ros-content-sharing-snaps/**/*ros-*.txt
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         name: Upload the snap as artifact
         with:
           name: ${{ matrix.snap_names }}
@@ -130,7 +130,7 @@ jobs:
       matrix:
         snap_names: ${{ fromJSON(needs.generate-snapcrafts.outputs.matrix) }}
     steps:
-    - uses: actions/download-artifact@v5
+    - uses: actions/download-artifact@v6
       with:
         name: ${{ matrix.snap_names }}
         path: .
