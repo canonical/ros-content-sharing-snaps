@@ -65,7 +65,7 @@ jobs:
           ))
           echo "matrix=$matrix_json" >> $GITHUB_OUTPUT
       - name: Upload snapcrafts folders
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: snapcraft_yamls
           path: snaps/
@@ -81,7 +81,7 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - name: Download snapcrafts folders
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: snapcraft_yamls
       - name: Print snapcraft.yaml
@@ -118,7 +118,7 @@ jobs:
           SNAP_FILE=$(lxc exec lxc-container -- bash -c 'ls /home/ubuntu/${{ matrix.snap_name }}/*.snap')
           lxc file pull lxc-container${SNAP_FILE} ${GH_RUNNER_WORKSPACE_PATH}/${{ matrix.snap_name }}/
       - name: Upload the snap as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.snap_name }}
           path: ${{ env.GH_RUNNER_WORKSPACE_PATH }}/${{ matrix.snap_name }}/*.snap
@@ -131,7 +131,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.generate-snapcrafts.outputs.matrix) }}
     steps:
-    - uses: actions/download-artifact@v5
+    - uses: actions/download-artifact@v6
       with:
         name: ${{ matrix.snap_name }}
         path: .
