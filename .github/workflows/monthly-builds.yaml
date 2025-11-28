@@ -142,3 +142,4 @@ jobs:
       with:
         snap: ${{ env.SNAPFILE }}
         release: beta
+
