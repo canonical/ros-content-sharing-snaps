@@ -1,8 +1,9 @@
 # ros-content-sharing-snaps
+
 ROS content sharing snaps generator
 
 This repository contains various scripts to generate the content sharing snaps for ROS.
-The snapcraft extensions corresponding to these content-sharing can be found the snapcraft documentation for [ROS](https://snapcraft.io/docs/ros-noetic-content-extension) and [ROS 2](https://snapcraft.io/docs/ros2-jazzy-content-extension).
+The snapcraft extensions corresponding to these content-sharing can be found the snapcraft documentation for [ROS](https://snapcraft.io/docs/ros-noetic-content-extension) and [ROS 2](https://snapcraft.io/docs/ros2-lyrical-content-extension).
 
 Additionaly, this repository contains the CI to build and upload the content sharing snaps.
 
@@ -14,10 +15,10 @@ All generated snaps include the `ros_snapd_interfaces` package from https://gith
 
 Generate a `package.xml` with all the recursive `build`, `buildtool`, `build_export`, `buildtool_export`, `exec`, `run` and `test` dependencies as exec depends.
 
-```
+```console
 optional arguments:
   -h, --help            show this help message and exit
-  --rosdistro {noetic,foxy,humble,jazzy}
+  --rosdistro {noetic,foxy,humble,jazzy,lyrical}
                         The ROS distro to evaluate.
   --variant {desktop,desktop-full,perception,robot,ros-base,ros-core}
                         The ROS (install) metapackage to serve as a variant. (default: None).
@@ -26,14 +27,15 @@ optional arguments:
   -c CMAKE_FILE, --cmake-file CMAKE_FILE
                         CMakeLists.txt file to write for metapackages
 ```
+
 ### generate_ros_meta_snapcraft_file
 
 Generate a `snapcraft.yaml` file for a ROS foundational snap.
 
-```
+```console
 optional arguments:
   -h, --help            show this help message and exit
-  -r {noetic,foxy,humble,jazzy}, --rosdistro {noetic,foxy,humble,jazzy}
+  -r {noetic,foxy,humble,jazzy,lyrical}, --rosdistro {noetic,foxy,humble,jazzy,lyrical}
                         The ROS distro to target.
   -v {desktop,desktop-full,perception,robot,ros-base,ros-core}, --variant {desktop,desktop-full,perception,robot,ros-base,ros-core}
                         The ROS metapackage to serve as a baseline. (default: ros-core).
@@ -47,7 +49,7 @@ optional arguments:
 
 Generate a `snapcraft.yaml`` file for all ROS foundational snap.
 
-```
+```console
 optional arguments:
   -h, --help            show this help message and exit
   -p PATH, --path PATH  Output path for generated files.

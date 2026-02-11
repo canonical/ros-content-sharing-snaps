@@ -17,7 +17,7 @@ def main(args=None):
         "--rosdistro",
         type=str,
         required=True,
-        choices=("noetic", "foxy", "humble", "jazzy"),
+        choices=("noetic", "foxy", "humble", "jazzy", "lyrical"),
         help="The ROS distro to target.",
     )
     parser.add_argument(

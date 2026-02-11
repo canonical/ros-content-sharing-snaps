@@ -54,6 +54,9 @@ def main(args=None):
         ROSContentSharingSnapVariants(
             ros_distro="jazzy", variants=["ros-core", "ros-base", "desktop"]
         ),
+        ROSContentSharingSnapVariants(
+            ros_distro="lyrical", variants=["ros-core", "ros-base", "desktop"]
+        ),
     ]
 
     for distro_content_sharing_snap in ros_distros_content_sharing_snaps:
