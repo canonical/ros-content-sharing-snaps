@@ -1,12 +1,13 @@
-{%- set coremap={'noetic':'core20', 'foxy':'core20', 'humble':'core22', 'jazzy':'core24'} -%}
-{%- set distromap={'noetic':'focal', 'foxy':'focal', 'humble':'jammy', 'jazzy':'noble'} -%}
-{%- set pluginmap={'noetic':'catkin', 'foxy':'colcon', 'humble':'colcon', 'jazzy':'colcon'} -%}
-{%- set versionmap={'noetic':'1', 'foxy':'2', 'humble':'2', 'jazzy': '2'} -%}
+{%- set coremap={'noetic':'core20', 'foxy':'core20', 'humble':'core22', 'jazzy':'core24', 'lyrical':'core26'} -%}
+{%- set distromap={'noetic':'focal', 'foxy':'focal', 'humble':'jammy', 'jazzy':'noble', 'lyrical':'resolute'} -%}
+{%- set pluginmap={'noetic':'catkin', 'foxy':'colcon', 'humble':'colcon', 'jazzy':'colcon', 'lyrical':'colcon'} -%}
+{%- set versionmap={'noetic':'1', 'foxy':'2', 'humble':'2', 'jazzy': '2', 'lyrical': '2'} -%}
 {%- set slotmap={
   'noetic':["ros-core", "ros-base", "robot", "desktop"],
   'foxy':["ros-core", "ros-base", "desktop"],
   'humble':["ros-core", "ros-base", "desktop"],
   'jazzy':["ros-core", "ros-base", "desktop"],
+  'lyrical':["ros-core", "ros-base", "desktop"],
   }
 -%}
 {%- set ros = 'ros' if versionmap[ros_distro] == '1' else 'ros2' -%}
@@ -73,7 +74,7 @@ package-repositories:
     url: http://packages.ros.org/ros2/ubuntu
 {%- endif %}
 
-{%- if coremap[ros_distro] == "core24" %}
+{%- if coremap[ros_distro] in ["core24", "core26"] %}
 platforms:
   {{ architecture }}:
     build-on: [{{ architecture }}]
@@ -177,6 +178,14 @@ parts:
 {% endif %}
 {% if ros_distro == 'jazzy' and variant == 'desktop' %}
   jazzy-desktop-java-cleanup:
+    # https://forum.snapcraft.io/t/resolve-package-contains-external-symlinks-error-when-trying-to-snap/2963/20
+    after: [variant]
+    plugin: nil
+    override-prime: |
+      rm -vf usr/lib/jvm/java-21-openjdk-*/lib/security/cacerts
+{% endif %}
+{% if ros_distro == 'lyrical' and variant == 'desktop' %}
+  lyrical-desktop-java-cleanup:
     # https://forum.snapcraft.io/t/resolve-package-contains-external-symlinks-error-when-trying-to-snap/2963/20
     after: [variant]
     plugin: nil
