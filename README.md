@@ -3,7 +3,7 @@
 ROS content sharing snaps generator
 
 This repository contains various scripts to generate the content sharing snaps for ROS.
-The snapcraft extensions corresponding to these content-sharing can be found the snapcraft documentation for [ROS](https://documentation.ubuntu.com/snapcraft/stable/reference/extensions/ros-1-content-extensions/) and [ROS 2](https://documentation.ubuntu.com/snapcraft/stable/reference/extensions/ros-2-content-extensions/).
+The Snapcraft extensions corresponding to these content-sharing snaps can be found in the Snapcraft documentation for [ROS](https://documentation.ubuntu.com/snapcraft/stable/reference/extensions/ros-1-content-extensions/) and [ROS 2](https://documentation.ubuntu.com/snapcraft/stable/reference/extensions/ros-2-content-extensions/).
 
 Additionaly, this repository contains the CI to build and upload the content sharing snaps.
 
