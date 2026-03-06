@@ -97,6 +97,9 @@ parts:
   ros-snapd-interfaces:
     plugin: {{ pluginmap[ros_distro] }}
     source: https://github.com/canonical/ros_snapd_interfaces.git
+    stage:
+      - -opt/ros/snap/setup.sh
+      - -opt/ros/snap/local_setup.sh
 {%- if versionmap[ros_distro] == '1' %}
     source-branch: ros
     build-packages: [build-essential, ros-{{ ros_distro }}-catkin]
