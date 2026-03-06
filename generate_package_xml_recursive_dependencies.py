@@ -68,6 +68,19 @@ def main():
     target_pkg = args.variant.replace("-", "_")
 
     try:
+        ignore_pkgs = [
+            "rmw_connextdds",
+            "rmw_connext_cpp",
+            "connext_dds_cmake_module",
+            "rmw_cyclonedds_cpp",
+            "rosidl_typesupport_connext_c",
+            "rosidl_typesupport_connext_cpp",
+        ]
+        if args.rosdistro == "jazzy":
+            # due to https://github.com/ros-infrastructure/ros_buildfarm/issues/1121
+            # or https://github.com/ros2/rosidl_core/pull/13
+            ignore_pkgs.append("rosidl_generator_rs")
+
         target_pkg_rec_deps = dependency_walker.get_recursive_depends(
             target_pkg,
             [
@@ -80,22 +93,16 @@ def main():
                 "test",
             ],
             ros_packages_only=True,
-            ignore_pkgs=[
-                "rmw_connextdds",
-                "rmw_connext_cpp",
-                "connext_dds_cmake_module",
-                "rmw_cyclonedds_cpp",
-                "rosidl_typesupport_connext_c",
-                "rosidl_typesupport_connext_cpp",
-            ],
+            ignore_pkgs=ignore_pkgs,
         )
     except KeyError as e:
         print(
-            f"Caught the following error while walking dependencies of {target_pkg}:\n {e}")
+            f"Caught the following error while walking dependencies of {target_pkg}:\n {e}"
+        )
         sys.exit(1)
 
     meta_package = PackageTemplate._create_package_template(
-        package_name=f'meta-{args.variant}', licenses=["GPLv3"]
+        package_name=f"meta-{args.variant}", licenses=["GPLv3"]
     )
     if args.rosdistro != "noetic":
         meta_package.buildtool_depends = [Dependency("ament_cmake")]
@@ -103,9 +110,7 @@ def main():
     for d in target_pkg_rec_deps:
         meta_package.exec_depends.append(Dependency(d))
 
-    meta_package_xml = create_package_xml(
-        meta_package, args.rosdistro, meta=True
-    )
+    meta_package_xml = create_package_xml(meta_package, args.rosdistro, meta=True)
     with open(args.output_file, "w") as f:
         f.write(meta_package_xml)
 
@@ -124,4 +129,3 @@ ament_package()
 
 if __name__ == "__main__":
     main()
-
