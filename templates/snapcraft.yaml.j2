@@ -94,6 +94,27 @@ slots:
 {%- endif %}
 
 parts:
+  ros-snapd-interfaces:
+    plugin: {{ pluginmap[ros_distro] }}
+    source: https://github.com/canonical/ros_snapd_interfaces.git
+    stage:
+      - -opt/ros/snap/setup.sh
+      - -opt/ros/snap/local_setup.sh
+{%- if versionmap[ros_distro] == '1' %}
+    source-branch: ros
+    build-packages: [build-essential, ros-{{ ros_distro }}-catkin]
+{%- else %}
+    source-branch: ros2
+    build-packages:
+      - ros-{{ ros_distro }}-ros-environment
+      - ros-{{ ros_distro }}-ros-workspace
+      - ros-{{ ros_distro }}-ament-index-cpp
+      - ros-{{ ros_distro }}-ament-index-python
+      - ros-{{ ros_distro }}-rosidl-default-generators
+{%- endif %}
+    build-environment:
+      - ROS_DISTRO: {{ ros_distro }}
+      - ROS_VERSION: '{{ versionmap[ros_distro] }}'
 {%- if dev is defined and dev | bool %}
   variant:
     plugin: {{ pluginmap[ros_distro] }}
@@ -126,6 +147,7 @@ parts:
   variant:
     plugin: nil
     stage-packages: [ros-{{ ros_distro }}-{{ variant | replace("_", "-") }}]
+    after: [ros-snapd-interfaces]
     # deb's update-alternatives are not run in snapcraft,
     # thus these libraries symlinks aren't create in lib/arch/.
     # We do so manually here for those two libraries that are very common in ROS.
@@ -152,7 +174,7 @@ parts:
       fi
 {% endif %}
   cleanup:
-    after: [variant]
+    after: [variant, ros-snapd-interfaces]
     build-packages: [fd-find]
     plugin: nil
     source: https://github.com/ubuntu-robotics/snapcraft-ros-clean.git
@@ -183,4 +205,3 @@ parts:
     override-prime: |
       rm -vf usr/lib/jvm/java-21-openjdk-*/lib/security/cacerts
 {% endif %}
-

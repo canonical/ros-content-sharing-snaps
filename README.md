@@ -6,6 +6,8 @@ The snapcraft extensions corresponding to these content-sharing can be found the
 
 Additionaly, this repository contains the CI to build and upload the content sharing snaps.
 
+All generated snaps include the `ros_snapd_interfaces` package from https://github.com/canonical/ros_snapd_interfaces.
+
 ## Scripts
 
 ### generate_package_xml_recursive_dependencies
