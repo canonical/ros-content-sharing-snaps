@@ -13,6 +13,12 @@ from rosdistro.dependency_walker import DependencyWalker
 
 
 def get_latest_rosdistro_tag(rosdistro_name: str) -> str:
+    # removeprefix doesn't exist in python < 3.9
+    def remove_prefix(input_string, prefix):
+        if prefix and input_string.startswith(prefix):
+            return input_string[len(prefix) :]
+        return input_string
+
     result = subprocess.run(
         [
             "git",
@@ -27,7 +33,7 @@ def get_latest_rosdistro_tag(rosdistro_name: str) -> str:
         text=True,
     )
     tags = [
-        line.split("\t")[1].removeprefix("refs/tags/")
+        remove_prefix(line.split("\t")[1], "refs/tags/")
         for line in result.stdout.strip().splitlines()
         if "^{}" not in line
     ]
