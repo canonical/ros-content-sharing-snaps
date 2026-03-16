@@ -1,4 +1,5 @@
 import argparse
+import subprocess
 import sys
 
 import rosdistro
@@ -9,6 +10,30 @@ from catkin_pkg.package_templates import (
     create_package_xml,
 )
 from rosdistro.dependency_walker import DependencyWalker
+
+
+def get_latest_rosdistro_tag(rosdistro_name: str) -> str:
+    result = subprocess.run(
+        [
+            "git",
+            "ls-remote",
+            "--tags",
+            "--sort=version:refname",
+            "https://github.com/ros/rosdistro.git",
+            f"refs/tags/{rosdistro_name}/*",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    tags = [
+        line.split("\t")[1].removeprefix("refs/tags/")
+        for line in result.stdout.strip().splitlines()
+        if "^{}" not in line
+    ]
+    if not tags:
+        raise RuntimeError(f"No tag found for '{rosdistro_name}' in ros/rosdistro")
+    return tags[-1]
 
 
 def main():
@@ -53,15 +78,13 @@ def main():
 
     args = parser.parse_args()
 
+    # We get the index from the latest tag and not from master which is not synced
+    latest_tag = get_latest_rosdistro_tag(args.rosdistro)
     index = rosdistro.get_index(
-        "https://raw.githubusercontent.com/ros/rosdistro/master/index-v4.yaml"
+        f"https://raw.githubusercontent.com/ros/rosdistro/{latest_tag}/index-v4.yaml"
     )
 
-    cache = rosdistro.get_distribution_cache(index, args.rosdistro)
-
-    upstream_distribution = rosdistro.get_cached_distribution(
-        index, args.rosdistro, cache=cache
-    )
+    upstream_distribution = rosdistro.get_distribution(index, args.rosdistro)
 
     dependency_walker = DependencyWalker(upstream_distribution)
 
@@ -76,10 +99,6 @@ def main():
             "rosidl_typesupport_connext_c",
             "rosidl_typesupport_connext_cpp",
         ]
-        if args.rosdistro == "jazzy":
-            # due to https://github.com/ros-infrastructure/ros_buildfarm/issues/1121
-            # or https://github.com/ros2/rosidl_core/pull/13
-            ignore_pkgs.append("rosidl_generator_rs")
 
         target_pkg_rec_deps = dependency_walker.get_recursive_depends(
             target_pkg,
