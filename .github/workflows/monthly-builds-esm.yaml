@@ -35,11 +35,9 @@ jobs:
       matrix: ${{ steps.generate.outputs.matrix }}
     steps:
       - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
       - uses: actions/setup-python@v6
         with:
-          python-version: '3.14'
+          python-version: '3.12'
 
       - name: Generate snapcraft yaml files for all ROS ESM distros
         id: generate
@@ -77,7 +75,7 @@ jobs:
         run: cat snaps/${{ matrix.snap_name }}/snapcraft.yaml
 
       - name: Setup LXD
-        uses: canonical/setup-lxd@main
+        uses: canonical/setup-lxd@v1
 
       - name: Launch an LXD container
         run: |
