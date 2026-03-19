@@ -5,17 +5,20 @@ from typing import List
 
 from generate_ros_meta_snapcraft_file import main as gen
 
+
 class ROSContentSharingSnapVariants:
     """Represent all the content sharing snaps to generate."""
-    def __init__(self, *, ros_distro: str, variants: List[str], architectures: List[str]):
+
+    def __init__(self, *, ros_distro: str, variants: List[str]):
         self.ros_distro = ros_distro
         self.variants = variants
-        self.architectures = architectures
+
 
 def is_dir(path: str) -> Path:
     if os.path.exists(path) and os.path.isdir(path):
         return Path(path)
     raise OSError(f"{path} is not a directory!")
+
 
 def main(args=None):
     parser = argparse.ArgumentParser(
@@ -32,7 +35,7 @@ def main(args=None):
         "-s",
         "--snap",
         help="Run snapcraft for the generated files.",
-        action="store_true"
+        action="store_true",
     )
 
     parsed_args = parser.parse_args(args=args)
@@ -43,37 +46,33 @@ def main(args=None):
 
     ros_distros_content_sharing_snaps = [
         ROSContentSharingSnapVariants(
-            ros_distro = "foxy",
-            variants = ["ros-core", "ros-base", "desktop"],
-            architectures = ["amd64", "arm64"]),
+            ros_distro="foxy", variants=["ros-core", "ros-base", "desktop"]
+        ),
         ROSContentSharingSnapVariants(
-            ros_distro = "humble",
-            variants = ["ros-core", "ros-base", "desktop"],
-            architectures = ["amd64", "arm64"]),
+            ros_distro="humble", variants=["ros-core", "ros-base", "desktop"]
+        ),
         ROSContentSharingSnapVariants(
-            ros_distro = "jazzy",
-            variants = ["ros-core", "ros-base", "desktop"],
-            architectures = ["amd64", "arm64"]),
-        ]
+            ros_distro="jazzy", variants=["ros-core", "ros-base", "desktop"]
+        ),
+    ]
 
     for distro_content_sharing_snap in ros_distros_content_sharing_snaps:
         for variant in distro_content_sharing_snap.variants:
-            for architecture in distro_content_sharing_snap.architectures:
-                ros_distro = distro_content_sharing_snap.ros_distro
-                folders = [
-                    parsed_args.path / f'{ros_distro}-{variant}-{architecture}',
-                    parsed_args.path / f'{ros_distro}-{variant}-dev-{architecture}'
-                ]
+            ros_distro = distro_content_sharing_snap.ros_distro
+            folders = [
+                parsed_args.path / f"{ros_distro}-{variant}",
+                parsed_args.path / f"{ros_distro}-{variant}-dev",
+            ]
 
-                for folder in folders:
-                    os.makedirs(folder, exist_ok=True)
-                    gen_args = ["-r", ros_distro, "-v", variant, "-a", architecture, "-p", str(folder), "-q"]
-                    if "dev" in folder.stem:
-                        gen_args.append("-d")
-                    if parsed_args.snap:
-                        gen_args.append("-s")
+            for folder in folders:
+                os.makedirs(folder, exist_ok=True)
+                gen_args = ["-r", ros_distro, "-v", variant, "-p", str(folder), "-q"]
+                if "dev" in folder.stem:
+                    gen_args.append("-d")
+                if parsed_args.snap:
+                    gen_args.append("-s")
 
-                    gen(gen_args)
+                gen(gen_args)
 
 
 if __name__ == "__main__":
