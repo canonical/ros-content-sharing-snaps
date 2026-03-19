@@ -21,6 +21,7 @@ jobs:
         run: |
           pip install .
           python3 ./generate_all_ros_meta_snapcraft_file.py
+          python3 ./generate_all_ros_esm_meta_snapcraft_file.py
           echo "matrix=$(ls snaps/ | sed -e 's/-[a-zA-Z0-9]*$//' | uniq | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
   promote:
     runs-on: ubuntu-latest
