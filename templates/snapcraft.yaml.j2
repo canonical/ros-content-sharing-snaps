@@ -108,8 +108,6 @@ parts:
       - -opt/ros/{{ ros_distro }}/share/roscpp_serialization/cmake
       - -opt/ros/{{ ros_distro }}/share/roscpp_traits/cmake
       - -opt/ros/{{ ros_distro }}/share/rostime/cmake
-{%- endif %}
-{%- if versionmap[ros_distro] == '1' %}
     source-branch: ros
     build-packages: [build-essential, ros-{{ ros_distro }}-catkin]
 {%- else %}
