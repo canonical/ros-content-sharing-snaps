@@ -101,6 +101,13 @@ parts:
       - -opt/ros/snap/setup.sh
       - -opt/ros/snap/local_setup.sh
 {%- if versionmap[ros_distro] == '1' %}
+      - -opt/ros/{{ ros_distro }}/share/cpp_common/cmake
+      - -opt/ros/{{ ros_distro }}/share/genmsg/cmake
+      - -opt/ros/{{ ros_distro }}/share/genpy/cmake
+      - -opt/ros/{{ ros_distro }}/share/message_runtime/cmake
+      - -opt/ros/{{ ros_distro }}/share/roscpp_serialization/cmake
+      - -opt/ros/{{ ros_distro }}/share/roscpp_traits/cmake
+      - -opt/ros/{{ ros_distro }}/share/rostime/cmake
     source-branch: ros
     build-packages: [build-essential, ros-{{ ros_distro }}-catkin]
 {%- else %}
