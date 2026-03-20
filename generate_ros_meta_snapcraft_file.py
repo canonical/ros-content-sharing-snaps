@@ -37,14 +37,6 @@ def main(args=None):
         help="The ROS metapackage to serve as a baseline. (default: %(default)s).",
     )
     parser.add_argument(
-        "-a",
-        "--architecture",
-        type=str,
-        required=False,
-        choices=("amd64", "arm64", "armhf"),
-        help="Deprecated. Architecture is no longer used in template generation.",
-    )
-    parser.add_argument(
         "-p",
         "--path",
         # type=is_dir,
