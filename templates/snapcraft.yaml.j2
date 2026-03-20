@@ -75,12 +75,12 @@ package-repositories:
 
 {%- if coremap[ros_distro] == "core24" %}
 platforms:
-  {{ architecture }}:
-    build-on: [{{ architecture }}]
-    build-for: [{{ architecture }}]
-{%- else %}
-architectures:
-  - build-on: {{ architecture }}
+  amd64:
+    build-on: [amd64]
+    build-for: [amd64]
+  arm64:
+    build-on: [arm64]
+    build-for: [arm64]
 {%- endif %}
 
 {% if dev is not defined or not dev | bool -%}
