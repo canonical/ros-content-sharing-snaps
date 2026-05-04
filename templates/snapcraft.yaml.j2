@@ -51,9 +51,16 @@ description: |
 
   ROS {{ ros_distro }} logo is a trademark of Open Source Robotics Foundation.
 
+{%- if coremap[ros_distro] == 'core26' %}
+grade: devel
+confinement: strict
+base: core26
+build-base: devel
+{%- else %}
 grade: stable
 confinement: strict
 base: {{ coremap[ros_distro] }}
+{%- endif %}
 
 website: https://github.com/canonical/ros-content-sharing-snaps
 source-code: https://github.com/canonical/ros-content-sharing-snaps
@@ -70,18 +77,20 @@ package-repositories:
     type: apt
 {%- if versionmap[ros_distro] == '1' %}
     url: http://packages.ros.org/ros/ubuntu
+{%- elif ros_distro == 'lyrical' %}
+    url: http://packages.ros.org/ros2-testing/ubuntu
 {%- else %}
     url: http://packages.ros.org/ros2/ubuntu
 {%- endif %}
 
 {%- if coremap[ros_distro] in ["core24", "core26"] %}
 platforms:
-  {{ architecture }}:
-    build-on: [{{ architecture }}]
-    build-for: [{{ architecture }}]
-{%- else %}
-architectures:
-  - build-on: {{ architecture }}
+  amd64:
+    build-on: [amd64]
+    build-for: [amd64]
+  arm64:
+    build-on: [arm64]
+    build-for: [arm64]
 {%- endif %}
 
 {% if dev is not defined or not dev | bool -%}
@@ -95,10 +104,47 @@ slots:
 {%- endif %}
 
 parts:
+  ros-snapd-interfaces:
+    plugin: {{ pluginmap[ros_distro] }}
+    source: https://github.com/canonical/ros_snapd_interfaces.git
+    stage:
+      - -opt/ros/snap/setup.sh
+      - -opt/ros/snap/local_setup.sh
+{%- if versionmap[ros_distro] == '1' %}
+      - -opt/ros/{{ ros_distro }}/share/cpp_common/cmake
+      - -opt/ros/{{ ros_distro }}/share/genmsg/cmake
+      - -opt/ros/{{ ros_distro }}/share/genpy/cmake
+      - -opt/ros/{{ ros_distro }}/share/message_runtime/cmake
+      - -opt/ros/{{ ros_distro }}/share/roscpp_serialization/cmake
+      - -opt/ros/{{ ros_distro }}/share/roscpp_traits/cmake
+      - -opt/ros/{{ ros_distro }}/share/rostime/cmake
+    source-branch: ros
+    build-packages: [build-essential, ros-{{ ros_distro }}-catkin]
+{%- else %}
+    source-branch: ros2
+    build-packages:
+      - ros-{{ ros_distro }}-ros-environment
+      - ros-{{ ros_distro }}-ros-workspace
+      - ros-{{ ros_distro }}-ament-index-cpp
+      - ros-{{ ros_distro }}-ament-index-python
+      - ros-{{ ros_distro }}-rosidl-default-generators
+{%- endif %}
+    build-environment:
+      - ROS_DISTRO: {{ ros_distro }}
+      - ROS_VERSION: '{{ versionmap[ros_distro] }}'
 {%- if dev is defined and dev | bool %}
   variant:
     plugin: {{ pluginmap[ros_distro] }}
     source: .
+{%- if ros_distro == 'lyrical' %}
+    stage-packages:
+      - libpython3.14-minimal
+      - libpython3.14-stdlib
+      - python3-minimal # for the "python3" symlink
+      - python3.14-minimal
+      - python3.14-venv
+      - python3-yaml
+{%- endif %}
 {%- if versionmap[ros_distro] == '1' %}
     build-packages: [build-essential, ros-{{ ros_distro }}-catkin]
 {%- else %}
@@ -126,7 +172,17 @@ parts:
 {% else %}
   variant:
     plugin: nil
-    stage-packages: [ros-{{ ros_distro }}-{{ variant | replace("_", "-") }}]
+    stage-packages:
+      - ros-{{ ros_distro }}-{{ variant | replace("_", "-") }}
+{%- if ros_distro == 'lyrical' %}
+      - libpython3.14-minimal
+      - libpython3.14-stdlib
+      - python3-minimal # for the "python3" symlink
+      - python3.14-minimal
+      - python3.14-venv
+      - python3-yaml
+{%- endif %}
+    after: [ros-snapd-interfaces]
     # deb's update-alternatives are not run in snapcraft,
     # thus these libraries symlinks aren't create in lib/arch/.
     # We do so manually here for those two libraries that are very common in ROS.
@@ -153,7 +209,7 @@ parts:
       fi
 {% endif %}
   cleanup:
-    after: [variant]
+    after: [variant, ros-snapd-interfaces]
     build-packages: [fd-find]
     plugin: nil
     source: https://github.com/ubuntu-robotics/snapcraft-ros-clean.git
@@ -192,4 +248,3 @@ parts:
     override-prime: |
       rm -vf usr/lib/jvm/java-21-openjdk-*/lib/security/cacerts
 {% endif %}
-
