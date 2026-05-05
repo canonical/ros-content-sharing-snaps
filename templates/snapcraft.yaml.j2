@@ -143,12 +143,21 @@ parts:
       - python3-minimal # for the "python3" symlink
       - python3.14-minimal
       - python3.14-venv
+      - python3-catkin-pkg
       - python3-yaml
 {%- endif %}
 {%- if versionmap[ros_distro] == '1' %}
-    build-packages: [build-essential, ros-{{ ros_distro }}-catkin]
+    build-packages:
+      - build-essential
+      - python3-catkin-pkg
+      - python3-rosdistro
+      - python3-rosdistro-modules
+      - ros-{{ ros_distro }}-catkin
 {%- else %}
     build-packages:
+      - python3-catkin-pkg
+      - python3-rosdistro
+      - python3-rosdistro-modules
       - ros-{{ ros_distro }}-ros-environment
       - ros-{{ ros_distro }}-ros-workspace
       - ros-{{ ros_distro }}-ament-index-cpp
@@ -158,7 +167,7 @@ parts:
       - ROS_DISTRO: {{ ros_distro }}
       - ROS_VERSION: '{{ versionmap[ros_distro] }}'
     override-build: |
-      python3 $SNAPCRAFT_PART_SRC/generate_package_xml_recursive_dependencies.py --variant {{ variant }} --rosdistro $ROS_DISTRO --output-file $SNAPCRAFT_PART_SRC/package.xml --cmake-file $SNAPCRAFT_PART_SRC/CMakeLists.txt
+      /usr/bin/python3 $SNAPCRAFT_PART_SRC/generate_package_xml_recursive_dependencies.py --variant {{ variant }} --rosdistro $ROS_DISTRO --output-file $SNAPCRAFT_PART_SRC/package.xml --cmake-file $SNAPCRAFT_PART_SRC/CMakeLists.txt
 {% if coremap[ros_distro] == 'core20' %}
       snapcraftctl build
 {% else %}
