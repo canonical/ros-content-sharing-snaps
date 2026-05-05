@@ -1,12 +1,13 @@
-{%- set coremap={'noetic':'core20', 'foxy':'core20', 'humble':'core22', 'jazzy':'core24'} -%}
-{%- set distromap={'noetic':'focal', 'foxy':'focal', 'humble':'jammy', 'jazzy':'noble'} -%}
-{%- set pluginmap={'noetic':'catkin', 'foxy':'colcon', 'humble':'colcon', 'jazzy':'colcon'} -%}
-{%- set versionmap={'noetic':'1', 'foxy':'2', 'humble':'2', 'jazzy': '2'} -%}
+{%- set coremap={'noetic':'core20', 'foxy':'core20', 'humble':'core22', 'jazzy':'core24', 'lyrical':'core26'} -%}
+{%- set distromap={'noetic':'focal', 'foxy':'focal', 'humble':'jammy', 'jazzy':'noble', 'lyrical':'resolute'} -%}
+{%- set pluginmap={'noetic':'catkin', 'foxy':'colcon', 'humble':'colcon', 'jazzy':'colcon', 'lyrical':'colcon'} -%}
+{%- set versionmap={'noetic':'1', 'foxy':'2', 'humble':'2', 'jazzy': '2', 'lyrical': '2'} -%}
 {%- set slotmap={
   'noetic':["ros-core", "ros-base", "robot", "desktop"],
   'foxy':["ros-core", "ros-base", "desktop"],
   'humble':["ros-core", "ros-base", "desktop"],
   'jazzy':["ros-core", "ros-base", "desktop"],
+  'lyrical':["ros-core", "ros-base", "desktop"],
   }
 -%}
 {%- set ros = 'ros' if versionmap[ros_distro] == '1' else 'ros2' -%}
@@ -50,9 +51,16 @@ description: |
 
   ROS {{ ros_distro }} logo is a trademark of Open Source Robotics Foundation.
 
+{%- if coremap[ros_distro] == 'core26' %}
+grade: devel
+confinement: strict
+base: core26
+build-base: devel
+{%- else %}
 grade: stable
 confinement: strict
 base: {{ coremap[ros_distro] }}
+{%- endif %}
 
 website: https://github.com/canonical/ros-content-sharing-snaps
 source-code: https://github.com/canonical/ros-content-sharing-snaps
@@ -69,11 +77,13 @@ package-repositories:
     type: apt
 {%- if versionmap[ros_distro] == '1' %}
     url: http://packages.ros.org/ros/ubuntu
+{%- elif ros_distro == 'lyrical' %}
+    url: http://packages.ros.org/ros2-testing/ubuntu
 {%- else %}
     url: http://packages.ros.org/ros2/ubuntu
 {%- endif %}
 
-{%- if coremap[ros_distro] == "core24" %}
+{%- if coremap[ros_distro] in ["core24", "core26"] %}
 platforms:
   amd64:
     build-on: [amd64]
@@ -126,10 +136,28 @@ parts:
   variant:
     plugin: {{ pluginmap[ros_distro] }}
     source: .
+{%- if ros_distro == 'lyrical' %}
+    stage-packages:
+      - libpython3.14-minimal
+      - libpython3.14-stdlib
+      - python3-minimal # for the "python3" symlink
+      - python3.14-minimal
+      - python3.14-venv
+      - python3-catkin-pkg
+      - python3-yaml
+{%- endif %}
 {%- if versionmap[ros_distro] == '1' %}
-    build-packages: [build-essential, ros-{{ ros_distro }}-catkin]
+    build-packages:
+      - build-essential
+      - python3-catkin-pkg
+      - python3-rosdistro
+      - python3-rosdistro-modules
+      - ros-{{ ros_distro }}-catkin
 {%- else %}
     build-packages:
+      - python3-catkin-pkg
+      - python3-rosdistro
+      - python3-rosdistro-modules
       - ros-{{ ros_distro }}-ros-environment
       - ros-{{ ros_distro }}-ros-workspace
       - ros-{{ ros_distro }}-ament-index-cpp
@@ -139,7 +167,7 @@ parts:
       - ROS_DISTRO: {{ ros_distro }}
       - ROS_VERSION: '{{ versionmap[ros_distro] }}'
     override-build: |
-      python3 $SNAPCRAFT_PART_SRC/generate_package_xml_recursive_dependencies.py --variant {{ variant }} --rosdistro $ROS_DISTRO --output-file $SNAPCRAFT_PART_SRC/package.xml --cmake-file $SNAPCRAFT_PART_SRC/CMakeLists.txt
+      /usr/bin/python3 $SNAPCRAFT_PART_SRC/generate_package_xml_recursive_dependencies.py --variant {{ variant }} --rosdistro $ROS_DISTRO --output-file $SNAPCRAFT_PART_SRC/package.xml --cmake-file $SNAPCRAFT_PART_SRC/CMakeLists.txt
 {% if coremap[ros_distro] == 'core20' %}
       snapcraftctl build
 {% else %}
@@ -153,7 +181,16 @@ parts:
 {% else %}
   variant:
     plugin: nil
-    stage-packages: [ros-{{ ros_distro }}-{{ variant | replace("_", "-") }}]
+    stage-packages:
+      - ros-{{ ros_distro }}-{{ variant | replace("_", "-") }}
+{%- if ros_distro == 'lyrical' %}
+      - libpython3.14-minimal
+      - libpython3.14-stdlib
+      - python3-minimal # for the "python3" symlink
+      - python3.14-minimal
+      - python3.14-venv
+      - python3-yaml
+{%- endif %}
     after: [ros-snapd-interfaces]
     # deb's update-alternatives are not run in snapcraft,
     # thus these libraries symlinks aren't create in lib/arch/.
@@ -206,6 +243,14 @@ parts:
 {% endif %}
 {% if ros_distro == 'jazzy' and variant == 'desktop' %}
   jazzy-desktop-java-cleanup:
+    # https://forum.snapcraft.io/t/resolve-package-contains-external-symlinks-error-when-trying-to-snap/2963/20
+    after: [variant]
+    plugin: nil
+    override-prime: |
+      rm -vf usr/lib/jvm/java-21-openjdk-*/lib/security/cacerts
+{% endif %}
+{% if ros_distro == 'lyrical' and variant == 'desktop' %}
+  lyrical-desktop-java-cleanup:
     # https://forum.snapcraft.io/t/resolve-package-contains-external-symlinks-error-when-trying-to-snap/2963/20
     after: [variant]
     plugin: nil

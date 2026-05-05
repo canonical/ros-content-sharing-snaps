@@ -38,6 +38,12 @@ def get_latest_rosdistro_tag(rosdistro_name: str) -> str:
         if "^{}" not in line
     ]
     if not tags:
+        if rosdistro_name == "lyrical":
+            print(
+                "No lyrical tag found in ros/rosdistro, using master index-v4.yaml "
+                "temporarily (lyrical/distribution.yaml)."
+            )
+            return "master"
         raise RuntimeError(f"No tag found for '{rosdistro_name}' in ros/rosdistro")
     return tags[-1]
 
@@ -50,7 +56,7 @@ def main():
         "--rosdistro",
         type=str,
         required=True,
-        choices=("noetic", "foxy", "humble", "jazzy"),
+        choices=("noetic", "foxy", "humble", "jazzy", "lyrical"),
         help="The ROS distro to evaluate.",
     )
     parser.add_argument(
@@ -84,7 +90,8 @@ def main():
 
     args = parser.parse_args()
 
-    # We get the index from the latest tag and not from master which is not synced
+    # We get the index from the latest tag and not from master which is not synced.
+    # For lyrical (not tagged yet), get_latest_rosdistro_tag falls back to "master".
     latest_tag = get_latest_rosdistro_tag(args.rosdistro)
     index = rosdistro.get_index(
         f"https://raw.githubusercontent.com/ros/rosdistro/{latest_tag}/index-v4.yaml"
