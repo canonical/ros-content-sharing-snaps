@@ -52,14 +52,12 @@ def main(args=None):
             ros_distro="humble", variants=["ros-core", "ros-base", "desktop"]
         ),
         ROSContentSharingSnapVariants(
-            ros_distro = "jazzy",
-            variants = ["ros-core", "ros-base", "desktop"],
-            architectures = ["amd64", "arm64"]),
+            ros_distro="jazzy", variants=["ros-core", "ros-base", "desktop"]
+        ),
         ROSContentSharingSnapVariants(
-            ros_distro = "lyrical",
-            variants = ["ros-core", "ros-base", "desktop"],
-            architectures = ["amd64", "arm64"]),
-        ]
+            ros_distro="lyrical", variants=["ros-core", "ros-base", "desktop"]
+        ),
+    ]
 
     for distro_content_sharing_snap in ros_distros_content_sharing_snaps:
         for variant in distro_content_sharing_snap.variants:

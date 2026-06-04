@@ -79,6 +79,7 @@ jobs:
         id: build-snap
         with:
           path: snaps/${{ matrix.snap_name }}
+          snapcraft-channel: ${{ startsWith(matrix.snap_name, 'lyrical-') && '9.x/candidate' || 'latest/stable' }}
 
       - name: Get architecture
         id: get-arch

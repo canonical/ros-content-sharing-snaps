@@ -51,16 +51,9 @@ description: |
 
   ROS {{ ros_distro }} logo is a trademark of Open Source Robotics Foundation.
 
-{%- if coremap[ros_distro] == 'core26' %}
-grade: devel
-confinement: strict
-base: core26
-build-base: devel
-{%- else %}
 grade: stable
 confinement: strict
 base: {{ coremap[ros_distro] }}
-{%- endif %}
 
 website: https://github.com/canonical/ros-content-sharing-snaps
 source-code: https://github.com/canonical/ros-content-sharing-snaps
@@ -77,8 +70,6 @@ package-repositories:
     type: apt
 {%- if versionmap[ros_distro] == '1' %}
     url: http://packages.ros.org/ros/ubuntu
-{%- elif ros_distro == 'lyrical' %}
-    url: http://packages.ros.org/ros2-testing/ubuntu
 {%- else %}
     url: http://packages.ros.org/ros2/ubuntu
 {%- endif %}
