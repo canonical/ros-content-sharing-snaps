@@ -88,8 +88,9 @@ jobs:
         id: build-snap
         with:
           path: snaps/${{ matrix.snap_name }}
+          # To have core26 stable snapcraft 9 is needed, but it is not yet available in latest/stable.
+          # Hence for now we use 9.x/candidate for lyrical until it is promoted to latest/stable.
           snapcraft-channel: ${{ startsWith(matrix.snap_name, 'lyrical-') && '9.x/candidate' || 'latest/stable' }}
-
       - name: Get architecture
         id: get-arch
         run: echo "arch=$(dpkg --print-architecture)" >> $GITHUB_OUTPUT
