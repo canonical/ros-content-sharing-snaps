@@ -5,7 +5,7 @@ ROS content sharing snaps generator
 This repository contains various scripts to generate the content sharing snaps for ROS.
 The snapcraft extensions corresponding to these content-sharing can be found the snapcraft documentation for [ROS](https://snapcraft.io/docs/ros-noetic-content-extension) and [ROS 2](https://snapcraft.io/docs/ros2-lyrical-content-extension).
 
-Additionaly, this repository contains the CI to build and upload the content sharing snaps.
+Additionally, this repository contains the CI to build and upload the content sharing snaps.
 
 All generated snaps include the `ros_snapd_interfaces` package from https://github.com/canonical/ros_snapd_interfaces.
 
@@ -47,7 +47,7 @@ optional arguments:
 
 ### generate_all_ros_meta_snapcraft_file
 
-Generate a `snapcraft.yaml`` file for all ROS foundational snap.
+Generate a `snapcraft.yaml` file for all ROS foundational snap.
 
 ```console
 optional arguments:
