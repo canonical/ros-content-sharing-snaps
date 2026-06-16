@@ -127,31 +127,25 @@ parts:
   variant:
     plugin: {{ pluginmap[ros_distro] }}
     source: .
-<<<<<<< HEAD
-=======
 {%- if ros_distro == 'lyrical' %}
+    # core26 do not ship python3; stage enough of the
+    # interpreter for the ROS python stack to run.
     stage-packages:
-      - libpython3.14-minimal
-      - libpython3.14-stdlib
-      - python3-minimal # for the "python3" symlink
+      - python3-minimal       # for the "python3" symlink
       - python3.14-minimal
-      - python3.14-venv
-      - python3-catkin-pkg
-      - python3-yaml
+      - libpython3.14-stdlib
+      - python3-catkin-pkg    # required by ament_cmake_core at build time
 {%- endif %}
->>>>>>> 976dc31 (add fallback to generate package.xml for lyrical since is not tagged, add python deps)
 {%- if versionmap[ros_distro] == '1' %}
-    build-packages:
-      - build-essential
-      - python3-catkin-pkg
-      - python3-rosdistro
-      - python3-rosdistro-modules
-      - ros-{{ ros_distro }}-catkin
+    build-packages: [build-essential, ros-{{ ros_distro }}-catkin]
 {%- else %}
     build-packages:
+{%- if ros_distro == 'lyrical' %}
+      # Required by generate_package_xml_recursive_dependencies.py
       - python3-catkin-pkg
       - python3-rosdistro
       - python3-rosdistro-modules
+{%- endif %}
       - ros-{{ ros_distro }}-ros-environment
       - ros-{{ ros_distro }}-ros-workspace
       - ros-{{ ros_distro }}-ament-index-cpp
@@ -175,7 +169,15 @@ parts:
 {% else %}
   variant:
     plugin: nil
-    stage-packages: [ros-{{ ros_distro }}-{{ variant | replace("_", "-") }}]
+    stage-packages:
+      - ros-{{ ros_distro }}-{{ variant | replace("_", "-") }}
+{%- if ros_distro == 'lyrical' %}
+      # core26 do not ship python3; stage enough of the
+      # interpreter for the ROS python stack to run.
+      - python3-minimal       # for the "python3" symlink
+      - python3.14-minimal    # interpreter (pulls libpython3.14-minimal)
+      - libpython3.14-stdlib  # stdlib (encodings, json, ...)
+{%- endif %}
     after: [ros-snapd-interfaces]
     # deb's update-alternatives are not run in snapcraft,
     # thus these libraries symlinks aren't create in lib/arch/.
