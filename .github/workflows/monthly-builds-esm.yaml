@@ -98,8 +98,17 @@ jobs:
           lxc exec lxc-container -- bash -c "export PRO_TOKEN='$PRO_TOKEN'; sudo pro attach $PRO_TOKEN"
           lxc exec lxc-container -- sudo pro enable ros
 
+      - name: Determine snapcraft channel
+        id: snapcraft
+        run: |
+          if [[ "${{ matrix.snap_name }}" == *noetic* ]]; then
+            echo "channel=8.x/stable" >> $GITHUB_OUTPUT
+          else
+            echo "channel=latest/stable" >> $GITHUB_OUTPUT
+          fi
+
       - name: Install snapcraft
-        run: lxc exec lxc-container -- sudo snap install snapcraft --classic --channel=8.x/stable
+        run: lxc exec lxc-container -- sudo snap install snapcraft --classic --channel=${{ steps.snapcraft.outputs.channel }}
 
       - name: Run snapcraft
         run: lxc exec lxc-container --cwd /home/ubuntu/${{ matrix.snap_name }} -- sudo snapcraft --destructive-mode
