@@ -37,14 +37,6 @@ def main(args=None):
         help="The ROS metapackage to serve as a baseline. (default: %(default)s).",
     )
     parser.add_argument(
-        "-a",
-        "--architecture",
-        type=str,
-        required=True,
-        choices=("amd64", "arm64", "armhf"),
-        help="The snap architecture to target.",
-    )
-    parser.add_argument(
         "-p",
         "--path",
         # type=is_dir,
@@ -52,9 +44,7 @@ def main(args=None):
         # default="",
         help="Output path for generated files.",
     )
-    parser.add_argument(
-        "-s", "--snap", help="Run snapcraft.", action="store_true"
-    )
+    parser.add_argument("-s", "--snap", help="Run snapcraft.", action="store_true")
     parser.add_argument(
         "-d", "--dev", help="Generate the dev snap.", action="store_true"
     )
@@ -70,32 +60,36 @@ def main(args=None):
 
     with open(Path("templates") / template_name, "r") as f:
         environment = jinja2.Environment()
-        environment.filters['bool']= bool
+        environment.filters["bool"] = bool
         template = environment.from_string(f.read())
         snapcraft_file = template.render(
-            ros_distro = parsed_args.rosdistro,
-            architecture = parsed_args.architecture,
-            variant = parsed_args.variant,
-            dev = parsed_args.dev,
+            ros_distro=parsed_args.rosdistro,
+            variant=parsed_args.variant,
+            dev=parsed_args.dev,
         )
-        if not parsed_args.quiet: print(snapcraft_file)
+        if not parsed_args.quiet:
+            print(snapcraft_file)
         if parsed_args.path:
-            if not (os.path.exists(parsed_args.path) and os.path.isdir(parsed_args.path)):
+            if not (
+                os.path.exists(parsed_args.path) and os.path.isdir(parsed_args.path)
+            ):
                 raise IsADirectoryError(f"{parsed_args.path} is not a directory!")
             with open(Path(parsed_args.path) / "snapcraft.yaml", "w") as f:
                 f.write(snapcraft_file)
             if parsed_args.snap:
                 subprocess.run(
-                    ["snapcraft", "--use-lxd", "--verbose"], check=True,
+                    ["snapcraft", "--use-lxd", "--verbose"],
+                    check=True,
                 )
 
         # add the generate_package_xml_recursive_dependencies.py in case of a dev snap
         if parsed_args.dev:
-            shutil.copy2("generate_package_xml_recursive_dependencies.py", f"{parsed_args.path}")
+            shutil.copy2(
+                "generate_package_xml_recursive_dependencies.py", f"{parsed_args.path}"
+            )
 
         return snapcraft_file
 
 
 if __name__ == "__main__":
     main()
-
