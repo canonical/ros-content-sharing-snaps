@@ -74,11 +74,21 @@ jobs:
       - name: Print snapcraft.yaml
         run: cat snaps/${{ matrix.snap_name }}/snapcraft.yaml
 
+      - name: Determine snapcraft channel
+        id: snapcraft
+        run: |
+          if [[ "${{ matrix.snap_name }}" == *foxy* ]]; then
+            echo "channel=8.x/stable" >> $GITHUB_OUTPUT
+          else
+            echo "channel=latest/stable" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build snap
         uses: canonical/action-build@v1
         id: build-snap
         with:
           path: snaps/${{ matrix.snap_name }}
+          snapcraft-channel: ${{ steps.snapcraft.outputs.channel }}
 
       - name: Get architecture
         id: get-arch
