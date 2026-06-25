@@ -131,21 +131,12 @@ parts:
     # core26 do not ship python3; stage enough of the
     # interpreter for the ROS python stack to run.
     stage-packages:
-      - python3-minimal       # for the "python3" symlink
-      - python3.14-minimal
-      - libpython3.14-stdlib
       - python3-catkin-pkg    # required by ament_cmake_core at build time
 {%- endif %}
 {%- if versionmap[ros_distro] == '1' %}
     build-packages: [build-essential, ros-{{ ros_distro }}-catkin]
 {%- else %}
     build-packages:
-{%- if ros_distro == 'lyrical' %}
-      # Required by generate_package_xml_recursive_dependencies.py
-      - python3-catkin-pkg
-      - python3-rosdistro
-      - python3-rosdistro-modules
-{%- endif %}
       - ros-{{ ros_distro }}-ros-environment
       - ros-{{ ros_distro }}-ros-workspace
       - ros-{{ ros_distro }}-ament-index-cpp
