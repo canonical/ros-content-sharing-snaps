@@ -161,13 +161,6 @@ parts:
     plugin: nil
     stage-packages:
       - ros-{{ ros_distro }}-{{ variant | replace("_", "-") }}
-{%- if ros_distro == 'lyrical' %}
-      # core26 do not ship python3; stage enough of the
-      # interpreter for the ROS python stack to run.
-      - python3-minimal       # for the "python3" symlink
-      - python3.14-minimal    # interpreter (pulls libpython3.14-minimal)
-      - libpython3.14-stdlib  # stdlib (encodings, json, ...)
-{%- endif %}
     after: [ros-snapd-interfaces]
     # deb's update-alternatives are not run in snapcraft,
     # thus these libraries symlinks aren't create in lib/arch/.
