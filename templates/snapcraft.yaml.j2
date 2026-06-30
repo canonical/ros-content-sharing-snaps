@@ -127,16 +127,15 @@ parts:
   variant:
     plugin: {{ pluginmap[ros_distro] }}
     source: .
-{%- if ros_distro == 'lyrical' %}
-    # core26 do not ship python3; stage enough of the
-    # interpreter for the ROS python stack to run.
-    stage-packages:
-      - python3-catkin-pkg    # required by ament_cmake_core at build time
-{%- endif %}
 {%- if versionmap[ros_distro] == '1' %}
     build-packages: [build-essential, ros-{{ ros_distro }}-catkin]
 {%- else %}
     build-packages:
+      # Required by generate_package_xml_recursive_dependencies.py
+      # in override-build. The colcon plugin
+      # pulls them in transitively, but we list them here explicitly.
+      - python3-catkin-pkg-modules
+      - python3-rosdistro-modules
       - ros-{{ ros_distro }}-ros-environment
       - ros-{{ ros_distro }}-ros-workspace
       - ros-{{ ros_distro }}-ament-index-cpp
