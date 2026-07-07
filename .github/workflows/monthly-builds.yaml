@@ -80,10 +80,10 @@ jobs:
           if [[ "${{ matrix.snap_name }}" == *foxy* ]]; then
             echo "channel=8.x/stable" >> $GITHUB_OUTPUT
           elif [[ "${{ matrix.snap_name }}" == *lyrical* ]]; then
-            # core26 support is only available in snapcraft 9's edge channel for now.
-            # The core26 support landed after 9.0.0 (candidate/stable) was cut, so
-            # use 9.x/edge for lyrical until it is promoted to a stable channel.
-            echo "channel=9.x/edge" >> $GITHUB_OUTPUT
+            # core26 support is only available in snapcraft 9's latest edge channel for now.
+            # The core26 support landed after 9.0.0, so
+            # use latest/edge for lyrical it lands to 9.x stable channel.
+            echo "channel=latest/edge" >> $GITHUB_OUTPUT
           else
             echo "channel=latest/stable" >> $GITHUB_OUTPUT
           fi
