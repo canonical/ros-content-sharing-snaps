@@ -84,7 +84,7 @@ def main():
 
     args = parser.parse_args()
 
-    # We get the index from the latest tag
+    # We get the index from the latest tag and not from master which is not synced
     latest_tag = get_latest_rosdistro_tag(args.rosdistro)
     index = rosdistro.get_index(
         f"https://raw.githubusercontent.com/ros/rosdistro/{latest_tag}/index-v4.yaml"
