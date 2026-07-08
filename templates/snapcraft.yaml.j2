@@ -1,12 +1,13 @@
-{%- set coremap={'noetic':'core20', 'foxy':'core20', 'humble':'core22', 'jazzy':'core24'} -%}
-{%- set distromap={'noetic':'focal', 'foxy':'focal', 'humble':'jammy', 'jazzy':'noble'} -%}
-{%- set pluginmap={'noetic':'catkin', 'foxy':'colcon', 'humble':'colcon', 'jazzy':'colcon'} -%}
-{%- set versionmap={'noetic':'1', 'foxy':'2', 'humble':'2', 'jazzy': '2'} -%}
+{%- set coremap={'noetic':'core20', 'foxy':'core20', 'humble':'core22', 'jazzy':'core24', 'lyrical':'core26'} -%}
+{%- set distromap={'noetic':'focal', 'foxy':'focal', 'humble':'jammy', 'jazzy':'noble', 'lyrical':'resolute'} -%}
+{%- set pluginmap={'noetic':'catkin', 'foxy':'colcon', 'humble':'colcon', 'jazzy':'colcon', 'lyrical':'colcon'} -%}
+{%- set versionmap={'noetic':'1', 'foxy':'2', 'humble':'2', 'jazzy': '2', 'lyrical': '2'} -%}
 {%- set slotmap={
   'noetic':["ros-core", "ros-base", "robot", "desktop"],
   'foxy':["ros-core", "ros-base", "desktop"],
   'humble':["ros-core", "ros-base", "desktop"],
   'jazzy':["ros-core", "ros-base", "desktop"],
+  'lyrical':["ros-core", "ros-base", "desktop"],
   }
 -%}
 {%- set ros = 'ros' if versionmap[ros_distro] == '1' else 'ros2' -%}
@@ -73,7 +74,7 @@ package-repositories:
     url: http://packages.ros.org/ros2/ubuntu
 {%- endif %}
 
-{%- if coremap[ros_distro] == "core24" %}
+{%- if coremap[ros_distro] in ["core24", "core26"] %}
 platforms:
   amd64:
     build-on: [amd64]
@@ -130,6 +131,11 @@ parts:
     build-packages: [build-essential, ros-{{ ros_distro }}-catkin]
 {%- else %}
     build-packages:
+      # Required by generate_package_xml_recursive_dependencies.py
+      # in override-build. The colcon plugin
+      # pulls them in transitively, but we list them here explicitly.
+      - python3-catkin-pkg-modules
+      - python3-rosdistro-modules
       - ros-{{ ros_distro }}-ros-environment
       - ros-{{ ros_distro }}-ros-workspace
       - ros-{{ ros_distro }}-ament-index-cpp
@@ -139,7 +145,7 @@ parts:
       - ROS_DISTRO: {{ ros_distro }}
       - ROS_VERSION: '{{ versionmap[ros_distro] }}'
     override-build: |
-      python3 $SNAPCRAFT_PART_SRC/generate_package_xml_recursive_dependencies.py --variant {{ variant }} --rosdistro $ROS_DISTRO --output-file $SNAPCRAFT_PART_SRC/package.xml --cmake-file $SNAPCRAFT_PART_SRC/CMakeLists.txt
+      /usr/bin/python3 $SNAPCRAFT_PART_SRC/generate_package_xml_recursive_dependencies.py --variant {{ variant }} --rosdistro $ROS_DISTRO --output-file $SNAPCRAFT_PART_SRC/package.xml --cmake-file $SNAPCRAFT_PART_SRC/CMakeLists.txt
 {% if coremap[ros_distro] == 'core20' %}
       snapcraftctl build
 {% else %}
@@ -153,7 +159,8 @@ parts:
 {% else %}
   variant:
     plugin: nil
-    stage-packages: [ros-{{ ros_distro }}-{{ variant | replace("_", "-") }}]
+    stage-packages:
+      - ros-{{ ros_distro }}-{{ variant | replace("_", "-") }}
     after: [ros-snapd-interfaces]
     # deb's update-alternatives are not run in snapcraft,
     # thus these libraries symlinks aren't create in lib/arch/.
@@ -211,4 +218,12 @@ parts:
     plugin: nil
     override-prime: |
       rm -vf usr/lib/jvm/java-21-openjdk-*/lib/security/cacerts
+{% endif %}
+{% if ros_distro == 'lyrical' and variant == 'desktop' %}
+  lyrical-desktop-java-cleanup:
+    # https://forum.snapcraft.io/t/resolve-package-contains-external-symlinks-error-when-trying-to-snap/2963/20
+    after: [variant]
+    plugin: nil
+    override-prime: |
+      rm -vf usr/lib/jvm/java-25-openjdk-*/lib/security/cacerts
 {% endif %}
