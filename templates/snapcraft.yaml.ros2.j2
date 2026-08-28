@@ -1,29 +1,24 @@
-{%- set coremap={'noetic':'core20', 'foxy':'core20', 'humble':'core22', 'jazzy':'core24', 'lyrical':'core26'} -%}
-{%- set distromap={'noetic':'focal', 'foxy':'focal', 'humble':'jammy', 'jazzy':'noble', 'lyrical':'resolute'} -%}
-{%- set pluginmap={'noetic':'catkin', 'foxy':'colcon', 'humble':'colcon', 'jazzy':'colcon', 'lyrical':'colcon'} -%}
-{%- set versionmap={'noetic':'1', 'foxy':'2', 'humble':'2', 'jazzy': '2', 'lyrical': '2'} -%}
+{%- set coremap={'foxy':'core20', 'humble':'core22', 'jazzy':'core24', 'lyrical':'core26'} -%}
+{%- set distromap={'foxy':'focal', 'humble':'jammy', 'jazzy':'noble', 'lyrical':'resolute'} -%}
 {%- set slotmap={
-  'noetic':["ros-core", "ros-base", "robot", "desktop"],
   'foxy':["ros-core", "ros-base", "desktop"],
   'humble':["ros-core", "ros-base", "desktop"],
   'jazzy':["ros-core", "ros-base", "desktop"],
   'lyrical':["ros-core", "ros-base", "desktop"],
   }
 -%}
-{%- set ros = 'ros' if versionmap[ros_distro] == '1' else 'ros2' -%}
-{%- set devsuffix = '-dev' if dev is defined and dev | bool else '' -%}
-{%- set snapname = "ros-" + ros_distro + "-" + variant + devsuffix -%}
+{%- set snapname = "ros-" + ros_distro + "-" + variant + ('-dev' if dev | bool else '') -%}
 
 name: {{ snapname }}
 version: '0.1'
-summary: The ROS {{ versionmap[ros_distro] }} {{ ros_distro }} {{ variant }} variant.
+summary: The ROS 2 {{ ros_distro }} {{ variant }} variant.
 description: |
-  This snap contains the ROS {{ versionmap[ros_distro] }} {{ ros_distro }} {{ variant }} variant [1].
+  This snap contains the ROS 2 {{ ros_distro }} {{ variant }} variant [1].
 
-  It provides the ROS {{ versionmap[ros_distro] }} {{ ros_distro }} stack to other snaps to that use it. \
-  It shares the ROS {{ versionmap[ros_distro] }} {{ ros_distro }} libraries, components and executables
+  It provides the ROS 2 {{ ros_distro }} stack to other snaps to that use it. \
+  It shares the ROS 2 {{ ros_distro }} libraries, components and executables
   through the content interface.
-  This helps reduce the size of snaps and helps developers to easily snap ROS {{ versionmap[ros_distro] }} {{ ros_distro }} applications.
+  This helps reduce the size of snaps and helps developers to easily snap ROS 2 {{ ros_distro }} applications.
 
   *For users*
 
@@ -38,11 +33,9 @@ description: |
   Find out how to do so in the documentation [4]. \
   You can report issues with this content snap on GitHub [5] where the source code is available [6]. \
 
-{% if versionmap[ros_distro] == '1' %}
-  [1] https://ros.org/reps/rep-0150.html
-{% else %}
+
   [1] https://ros.org/reps/rep-2001.html
-{% endif %}
+
   [2] https://forum.snapcraft.io/ \
   [3] https://snapcraft.io/docs/supported-extensions \
   [4] https://ubuntu.com/robotics/docs/ros-deployment-with-snaps-part-4 \
@@ -68,11 +61,7 @@ package-repositories:
     key-server: keyserver.ubuntu.com
     suites: [{{ distromap[ros_distro] }}]
     type: apt
-{%- if versionmap[ros_distro] == '1' %}
-    url: http://packages.ros.org/ros/ubuntu
-{%- else %}
     url: http://packages.ros.org/ros2/ubuntu
-{%- endif %}
 
 {%- if coremap[ros_distro] in ["core24", "core26"] %}
 platforms:
@@ -84,7 +73,7 @@ platforms:
     build-for: [arm64]
 {%- endif %}
 
-{% if dev is not defined or not dev | bool -%}
+{% if not dev | bool -%}
 slots:
 {%- for slot in slotmap[ros_distro][:slotmap[ros_distro].index(variant)+1] %}
   {{ "ros-" + ros_distro + "-" + slot}}:
@@ -95,41 +84,10 @@ slots:
 {%- endif %}
 
 parts:
-  ros-snapd-interfaces:
-    plugin: {{ pluginmap[ros_distro] }}
-    source: https://github.com/canonical/ros_snapd_interfaces.git
-    stage:
-      - -opt/ros/snap/setup.sh
-      - -opt/ros/snap/local_setup.sh
-{%- if versionmap[ros_distro] == '1' %}
-      - -opt/ros/{{ ros_distro }}/share/cpp_common/cmake
-      - -opt/ros/{{ ros_distro }}/share/genmsg/cmake
-      - -opt/ros/{{ ros_distro }}/share/genpy/cmake
-      - -opt/ros/{{ ros_distro }}/share/message_runtime/cmake
-      - -opt/ros/{{ ros_distro }}/share/roscpp_serialization/cmake
-      - -opt/ros/{{ ros_distro }}/share/roscpp_traits/cmake
-      - -opt/ros/{{ ros_distro }}/share/rostime/cmake
-    source-branch: ros
-    build-packages: [build-essential, ros-{{ ros_distro }}-catkin]
-{%- else %}
-    source-branch: ros2
-    build-packages:
-      - ros-{{ ros_distro }}-ros-environment
-      - ros-{{ ros_distro }}-ros-workspace
-      - ros-{{ ros_distro }}-ament-index-cpp
-      - ros-{{ ros_distro }}-ament-index-python
-      - ros-{{ ros_distro }}-rosidl-default-generators
-{%- endif %}
-    build-environment:
-      - ROS_DISTRO: {{ ros_distro }}
-      - ROS_VERSION: '{{ versionmap[ros_distro] }}'
-{%- if dev is defined and dev | bool %}
+{%- if dev | bool %}
   variant:
-    plugin: {{ pluginmap[ros_distro] }}
+    plugin: colcon
     source: .
-{%- if versionmap[ros_distro] == '1' %}
-    build-packages: [build-essential, ros-{{ ros_distro }}-catkin]
-{%- else %}
     build-packages:
       # Required by generate_package_xml_recursive_dependencies.py
       # in override-build. The colcon plugin
@@ -140,10 +98,9 @@ parts:
       - ros-{{ ros_distro }}-ros-workspace
       - ros-{{ ros_distro }}-ament-index-cpp
       - ros-{{ ros_distro }}-ament-index-python
-{%- endif %}
     build-environment:
       - ROS_DISTRO: {{ ros_distro }}
-      - ROS_VERSION: '{{ versionmap[ros_distro] }}'
+      - ROS_VERSION: '2'
     override-build: |
       /usr/bin/python3 $SNAPCRAFT_PART_SRC/generate_package_xml_recursive_dependencies.py --variant {{ variant }} --rosdistro $ROS_DISTRO --output-file $SNAPCRAFT_PART_SRC/package.xml --cmake-file $SNAPCRAFT_PART_SRC/CMakeLists.txt
 {% if coremap[ros_distro] == 'core20' %}
@@ -151,17 +108,15 @@ parts:
 {% else %}
       craftctl default
 {%- endif %}
-{%- if versionmap[ros_distro] == '1' %}
-      find "${SNAPCRAFT_PART_INSTALL}/opt/ros/${ROS_DISTRO}/share/" \( -name "*Config.cmake" -o -name "*extras.cmake" \) -exec \
-        sed -i -e "s|/opt|/snap/{{ snapname }}/current&|g" -e "s|/usr|/snap/{{ snapname }}/current&|g" \
-        -e "s|\${% raw %}{{.*_DIR}}{% endraw %}/../../..|/snap/{{ snapname }}/current/opt/ros/${ROS_DISTRO}|g" {} \;
-{%- endif %}
 {% else %}
   variant:
     plugin: nil
     stage-packages:
       - ros-{{ ros_distro }}-{{ variant | replace("_", "-") }}
-    after: [ros-snapd-interfaces]
+{% if coremap[ros_distro] != 'core20' %}
+      - ros-{{ ros_distro }}-ros-snapd-interfaces
+      - ros-{{ ros_distro }}-rmw-zenoh-cpp
+{% endif %}
     # deb's update-alternatives are not run in snapcraft,
     # thus these libraries symlinks aren't create in lib/arch/.
     # We do so manually here for those two libraries that are very common in ROS.
@@ -188,18 +143,15 @@ parts:
       fi
 {% endif %}
   cleanup:
-    after: [variant, ros-snapd-interfaces]
+    after: [variant]
     build-packages: [fd-find]
     plugin: nil
     source: https://github.com/ubuntu-robotics/snapcraft-ros-clean.git
     build-environment:
       - ROS_DISTRO: {{ ros_distro }}
     override-prime: |
-{%- if versionmap[ros_distro] == '1' %}
-      $SNAPCRAFT_PART_SRC/scripts/clean_ROS_debs.sh
-{% else %}
       $SNAPCRAFT_PART_SRC/scripts/clean_ROS_2_debs.sh
-{% endif %}
+
       $SNAPCRAFT_PART_SRC/scripts/clean_files.sh
 {% endif %}
 {% if ros_distro == 'humble' and variant == 'desktop' %}

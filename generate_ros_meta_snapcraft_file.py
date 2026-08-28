@@ -56,7 +56,11 @@ def main(args=None):
         if not parsed_args.path:
             raise ValueError("Option '--path' must be set when using '--snap'!")
 
-    template_name = "snapcraft.yaml.j2"
+    template_name = (
+        "snapcraft.yaml.ros1.j2"
+        if parsed_args.rosdistro == "noetic"
+        else "snapcraft.yaml.ros2.j2"
+    )
 
     with open(Path("templates") / template_name, "r") as f:
         environment = jinja2.Environment()

@@ -132,6 +132,12 @@ def main():
     if args.rosdistro != "noetic":
         meta_package.buildtool_depends = [Dependency("ament_cmake")]
         # @todo <export><build_type>ament_cmake</build_type></export>
+    # Additional dependencies.
+    # rmw-zenoh-cpp and ros-snapd-interfaces are
+    # available since humble.
+    if args.rosdistro not in ("noetic", "foxy"):
+        target_pkg_rec_deps.add("ros_snapd_interfaces")
+        target_pkg_rec_deps.add("rmw_zenoh_cpp")
     for d in target_pkg_rec_deps:
         meta_package.exec_depends.append(Dependency(d))
 
