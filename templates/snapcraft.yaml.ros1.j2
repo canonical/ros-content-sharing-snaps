@@ -1,0 +1,128 @@
+{%- set snapname = "ros-" + ros_distro + "-" + variant + ('-dev' if dev | bool else '') -%}
+
+name: {{ snapname }}
+version: '0.1'
+summary: The ROS 1 {{ ros_distro }} {{ variant }} variant.
+description: |
+  This snap contains the ROS 1 {{ ros_distro }} {{ variant }} variant [1].
+
+  It provides the ROS 1 {{ ros_distro }} stack to other snaps to that use it. \
+  It shares the ROS 1 {{ ros_distro }} libraries, components and executables
+  through the content interface.
+  This helps reduce the size of snaps and helps developers to easily snap ROS 1 {{ ros_distro }} applications.
+
+  *For users*
+
+  This snap is automatically installed and removed when needed. \
+  Manually adding or removing this snap is not recommended and might break things.
+
+  If you are having issues with snaps using ROS, please contact the experts on the Snapcraft forum [2].
+
+  *For developers*
+
+  The `ros` extensions are the recommended way to use this in your own snap [3]. \
+  Find out how to do so in the documentation [4]. \
+  You can report issues with this content snap on GitHub [5] where the source code is available [6]. \
+
+  [1] https://ros.org/reps/rep-0150.html
+  [2] https://forum.snapcraft.io/ \
+  [3] https://snapcraft.io/docs/supported-extensions \
+  [4] https://ubuntu.com/robotics/docs/ros-deployment-with-snaps-part-4 \
+  [5] https://github.com/canonical/ros-content-sharing-snaps/issues \
+  [6] https://github.com/canonical/ros-content-sharing-snaps
+
+  ROS {{ ros_distro }} logo is a trademark of Open Source Robotics Foundation.
+
+grade: stable
+confinement: strict
+base: core20
+
+website: https://github.com/canonical/ros-content-sharing-snaps
+source-code: https://github.com/canonical/ros-content-sharing-snaps
+issues: https://github.com/canonical/ros-content-sharing-snaps/issues
+contact: ubuntu-robotics-community@canonical.com
+
+# Add ROS repository
+package-repositories:
+  - components: [main]
+    formats: [deb]
+    key-id: C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+    key-server: keyserver.ubuntu.com
+    suites: [focal]
+    type: apt
+    url: http://packages.ros.org/ros/ubuntu
+
+{% if not dev | bool -%}
+slots:
+{%- set slotmap = ["ros-core", "ros-base", "robot", "desktop"] -%}
+{%- for slot in slotmap[:slotmap.index(variant)+1] %}
+  {{ "ros-" + ros_distro + "-" + slot}}:
+    content: {{ "ros-" + ros_distro + "-" + slot}}
+    interface: content
+    read: [/]
+{%- endfor -%}
+{%- endif %}
+
+parts:
+  extra-dependencies:
+    plugin: catkin
+    source: https://github.com/canonical/ros_snapd_interfaces.git
+    stage:
+      - -opt/ros/snap/setup.sh
+      - -opt/ros/snap/local_setup.sh
+      - -opt/ros/{{ ros_distro }}/share/cpp_common/cmake
+      - -opt/ros/{{ ros_distro }}/share/genmsg/cmake
+      - -opt/ros/{{ ros_distro }}/share/genpy/cmake
+      - -opt/ros/{{ ros_distro }}/share/message_runtime/cmake
+      - -opt/ros/{{ ros_distro }}/share/roscpp_serialization/cmake
+      - -opt/ros/{{ ros_distro }}/share/roscpp_traits/cmake
+      - -opt/ros/{{ ros_distro }}/share/rostime/cmake
+    source-branch: ros
+    build-packages: [build-essential, ros-{{ ros_distro }}-catkin]
+    build-environment:
+      - ROS_DISTRO: {{ ros_distro }}
+      - ROS_VERSION: '1'
+{%- if dev | bool %}
+  variant:
+    plugin: catkin
+    source: .
+    build-packages: [build-essential, ros-{{ ros_distro }}-catkin]
+    build-environment:
+      - ROS_DISTRO: {{ ros_distro }}
+      - ROS_VERSION: '1'
+    override-build: |
+      /usr/bin/python3 $SNAPCRAFT_PART_SRC/generate_package_xml_recursive_dependencies.py --variant {{ variant }} --rosdistro $ROS_DISTRO --output-file $SNAPCRAFT_PART_SRC/package.xml --cmake-file $SNAPCRAFT_PART_SRC/CMakeLists.txt
+      snapcraftctl build
+      find "${SNAPCRAFT_PART_INSTALL}/opt/ros/${ROS_DISTRO}/share/" \( -name "*Config.cmake" -o -name "*extras.cmake" \) -exec \
+        sed -i -e "s|/opt|/snap/{{ snapname }}/current&|g" -e "s|/usr|/snap/{{ snapname }}/current&|g" \
+        -e "s|\${% raw %}{{.*_DIR}}{% endraw %}/../../..|/snap/{{ snapname }}/current/opt/ros/${ROS_DISTRO}|g" {} \;
+{% else %}
+  variant:
+    plugin: nil
+    stage-packages:
+      - ros-{{ ros_distro }}-{{ variant | replace("_", "-") }}
+    after: [extra-dependencies]
+    # deb's update-alternatives are not run in snapcraft,
+    # thus these libraries symlinks aren't create in lib/arch/.
+    # We do so manually here for those two libraries that are very common in ROS.
+    override-build: |
+      snapcraftctl build
+
+      if [ -f "${SNAPCRAFT_PART_INSTALL}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/blas/libblas.so.3."* ]; then
+        ln --symbolic --force --relative "${SNAPCRAFT_PART_INSTALL}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/blas/libblas.so.3."* "${SNAPCRAFT_PART_INSTALL}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/libblas.so.3"
+      fi
+
+      if [ -f "${SNAPCRAFT_PART_INSTALL}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/lapack/liblapack.so.3."* ]; then
+        ln --symbolic --force --relative "${SNAPCRAFT_PART_INSTALL}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/lapack/liblapack.so.3."* "${SNAPCRAFT_PART_INSTALL}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/liblapack.so.3"
+      fi
+  cleanup:
+    after: [variant, extra-dependencies]
+    build-packages: [fd-find]
+    plugin: nil
+    source: https://github.com/ubuntu-robotics/snapcraft-ros-clean.git
+    build-environment:
+      - ROS_DISTRO: {{ ros_distro }}
+    override-prime: |
+      $SNAPCRAFT_PART_SRC/scripts/clean_ROS_debs.sh
+      $SNAPCRAFT_PART_SRC/scripts/clean_files.sh
+{% endif %}
