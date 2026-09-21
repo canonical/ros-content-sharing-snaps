@@ -7,7 +7,9 @@ The snapcraft extensions corresponding to these content-sharing can be found the
 
 Additionally, this repository contains the CI to build and upload the content sharing snaps.
 
-All generated snaps include the `ros_snapd_interfaces` package from https://github.com/canonical/ros_snapd_interfaces.
+All generated snaps (except foxy) include the `ros_snapd_interfaces` package from https://github.com/canonical/ros_snapd_interfaces.
+
+All generated ROS 2 snaps (except foxy) include the `rmw_zenoh_cpp`.
 
 ## Scripts
 
