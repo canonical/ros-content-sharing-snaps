@@ -63,6 +63,66 @@ jobs:
       matrix:
         snap_name: ${{ fromJSON(needs.generate-snapcrafts.outputs.matrix) }}
         runs-on: [ubuntu-latest, ubuntu-24.04-arm]
+        # Foxy snaps use base: core20, so snapcraft builds them in a focal
+        # LXD container. The ubuntu-24.04 runner image moved to a Linux 7.0
+        # kernel, which rejects the AppArmor profiles emitted by focal's
+        # apparmor_parser 2.13 ("Profile doesn't conform to protocol"),
+        # preventing snapd from starting in the build container.
+        # Pin foxy builds to ubuntu-22.04 runners (6.x kernel) until the
+        # kernel/AppArmor incompatibility is fixed upstream.
+        # https://github.com/canonical/craft-actions/issues/144
+        # https://github.com/actions/runner-images/issues/15197
+        # https://bugs.launchpad.net/bugs/2172229
+        exclude:
+          - snap_name: foxy-desktop
+            runs-on: ubuntu-latest
+          - snap_name: foxy-desktop
+            runs-on: ubuntu-24.04-arm
+          - snap_name: foxy-desktop-dev
+            runs-on: ubuntu-latest
+          - snap_name: foxy-desktop-dev
+            runs-on: ubuntu-24.04-arm
+          - snap_name: foxy-ros-base
+            runs-on: ubuntu-latest
+          - snap_name: foxy-ros-base
+            runs-on: ubuntu-24.04-arm
+          - snap_name: foxy-ros-base-dev
+            runs-on: ubuntu-latest
+          - snap_name: foxy-ros-base-dev
+            runs-on: ubuntu-24.04-arm
+          - snap_name: foxy-ros-core
+            runs-on: ubuntu-latest
+          - snap_name: foxy-ros-core
+            runs-on: ubuntu-24.04-arm
+          - snap_name: foxy-ros-core-dev
+            runs-on: ubuntu-latest
+          - snap_name: foxy-ros-core-dev
+            runs-on: ubuntu-24.04-arm
+        include:
+          - snap_name: foxy-desktop
+            runs-on: ubuntu-22.04
+          - snap_name: foxy-desktop
+            runs-on: ubuntu-22.04-arm
+          - snap_name: foxy-desktop-dev
+            runs-on: ubuntu-22.04
+          - snap_name: foxy-desktop-dev
+            runs-on: ubuntu-22.04-arm
+          - snap_name: foxy-ros-base
+            runs-on: ubuntu-22.04
+          - snap_name: foxy-ros-base
+            runs-on: ubuntu-22.04-arm
+          - snap_name: foxy-ros-base-dev
+            runs-on: ubuntu-22.04
+          - snap_name: foxy-ros-base-dev
+            runs-on: ubuntu-22.04-arm
+          - snap_name: foxy-ros-core
+            runs-on: ubuntu-22.04
+          - snap_name: foxy-ros-core
+            runs-on: ubuntu-22.04-arm
+          - snap_name: foxy-ros-core-dev
+            runs-on: ubuntu-22.04
+          - snap_name: foxy-ros-core-dev
+            runs-on: ubuntu-22.04-arm
     runs-on: ${{ matrix.runs-on }}
     steps:
       - name: Download snapcrafts folders
