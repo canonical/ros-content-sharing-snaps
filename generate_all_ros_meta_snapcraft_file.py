@@ -46,9 +46,6 @@ def main(args=None):
 
     ros_distros_content_sharing_snaps = [
         ROSContentSharingSnapVariants(
-            ros_distro="foxy", variants=["ros-core", "ros-base", "desktop"]
-        ),
-        ROSContentSharingSnapVariants(
             ros_distro="humble", variants=["ros-core", "ros-base", "desktop"]
         ),
         ROSContentSharingSnapVariants(

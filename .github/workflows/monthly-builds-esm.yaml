@@ -101,7 +101,7 @@ jobs:
       - name: Determine snapcraft channel
         id: snapcraft
         run: |
-          if [[ "${{ matrix.snap_name }}" == *noetic* ]]; then
+          if [[ "${{ matrix.snap_name }}" == *noetic* || "${{ matrix.snap_name }}" == *foxy* ]]; then
             echo "channel=8.x/stable" >> $GITHUB_OUTPUT
           else
             echo "channel=latest/stable" >> $GITHUB_OUTPUT
