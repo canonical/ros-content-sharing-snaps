@@ -93,6 +93,8 @@ parts:
       # in override-build. The colcon plugin
       # pulls them in transitively, but we list them here explicitly.
       - git
+      # Required by the generated CMake meta-package.
+      - make
       - python3-catkin-pkg-modules
       - python3-rosdistro-modules
       - ros-{{ ros_distro }}-ros-environment
